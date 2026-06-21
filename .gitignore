@@ -1,0 +1,14 @@
+node_modules/
+output/videos/*
+!output/videos/.gitkeep
+output/audio/
+output/images/
+tools/ComfyUI/models/
+tools/ComfyUI/node_modules/
+tools/hf-cache/
+reference/
+.env
+*.log
+.DS_Store
+dist/
+luxor9_deploy/
