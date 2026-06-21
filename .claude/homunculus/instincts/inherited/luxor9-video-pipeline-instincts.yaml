@@ -1,0 +1,278 @@
+# Instincts generated from https://github.com/rajkhemani/luxor9-video-pipeline
+# Generated: 2026-06-21T03:32:20.156Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: luxor9-video-pipeline-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/rajkhemani/luxor9-video-pipeline
+---
+
+# Luxor9 Video Pipeline Commit Length
+
+## Action
+
+Write moderate-length commit messages (~64 characters)
+
+## Evidence
+
+- Average commit message length: 64 chars
+- Based on 1 commits
+
+---
+id: luxor9-video-pipeline-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/rajkhemani/luxor9-video-pipeline
+---
+
+# Luxor9 Video Pipeline Naming Files
+
+## Action
+
+Use camelCase naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: camelCase
+
+---
+id: luxor9-video-pipeline-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/rajkhemani/luxor9-video-pipeline
+---
+
+# Luxor9 Video Pipeline Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: luxor9-video-pipeline-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/rajkhemani/luxor9-video-pipeline
+---
+
+# Luxor9 Video Pipeline Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: luxor9-video-pipeline-test-separate
+trigger: "when writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/rajkhemani/luxor9-video-pipeline
+---
+
+# Luxor9 Video Pipeline Test Separate
+
+## Action
+
+Place tests in the tests/ or __tests__/ directory, mirroring src structure
+
+## Evidence
+
+- Separate test directory pattern detected
+- Tests live in dedicated test folders
+
+---
+id: luxor9-video-pipeline-instinct-file-naming
+trigger: "When creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: rajkhemani/luxor9-video-pipeline
+---
+
+# Luxor9 Video Pipeline Instinct File Naming
+
+## Action
+
+Name the file using camelCase
+
+## Evidence
+
+- Pattern in namingConventions.files
+
+---
+id: luxor9-video-pipeline-instinct-function-naming
+trigger: "When defining a new function"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: rajkhemani/luxor9-video-pipeline
+---
+
+# Luxor9 Video Pipeline Instinct Function Naming
+
+## Action
+
+Name the function using camelCase
+
+## Evidence
+
+- Pattern in namingConventions.functions
+
+---
+id: luxor9-video-pipeline-instinct-class-naming
+trigger: "When defining a new class"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: rajkhemani/luxor9-video-pipeline
+---
+
+# Luxor9 Video Pipeline Instinct Class Naming
+
+## Action
+
+Name the class using PascalCase
+
+## Evidence
+
+- Pattern in namingConventions.classes
+
+---
+id: luxor9-video-pipeline-instinct-constant-naming
+trigger: "When declaring a constant"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: rajkhemani/luxor9-video-pipeline
+---
+
+# Luxor9 Video Pipeline Instinct Constant Naming
+
+## Action
+
+Name the constant using SCREAMING_SNAKE_CASE
+
+## Evidence
+
+- Pattern in namingConventions.constants
+
+---
+id: luxor9-video-pipeline-instinct-import-style
+trigger: "When importing modules"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: rajkhemani/luxor9-video-pipeline
+---
+
+# Luxor9 Video Pipeline Instinct Import Style
+
+## Action
+
+Use relative import paths
+
+## Evidence
+
+- Pattern in importStyle
+
+---
+id: luxor9-video-pipeline-instinct-export-style
+trigger: "When exporting modules or functions"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: rajkhemani/luxor9-video-pipeline
+---
+
+# Luxor9 Video Pipeline Instinct Export Style
+
+## Action
+
+Use named exports
+
+## Evidence
+
+- Pattern in exportStyle
+
+---
+id: luxor9-video-pipeline-instinct-git-commit-format
+trigger: "When writing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: rajkhemani/luxor9-video-pipeline
+---
+
+# Luxor9 Video Pipeline Instinct Git Commit Format
+
+## Action
+
+Use freeform commit messages without a strict prefix
+
+## Evidence
+
+- Pattern in commits.type: freeform
+- Example: 'Bump the npm_and_yarn group across 5 directories with 11 updates'
+
+---
+id: luxor9-video-pipeline-instinct-commit-length
+trigger: "When composing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: rajkhemani/luxor9-video-pipeline
+---
+
+# Luxor9 Video Pipeline Instinct Commit Length
+
+## Action
+
+Keep commit messages concise (around 64 characters on average)
+
+## Evidence
+
+- Pattern in commits.averageLength
+
+---
+id: luxor9-video-pipeline-instinct-test-location
+trigger: "When adding new tests"
+confidence: 0.7
+domain: testing
+source: repo-analysis
+source_repo: rajkhemani/luxor9-video-pipeline
+---
+
+# Luxor9 Video Pipeline Instinct Test Location
+
+## Action
+
+Place tests in a separate directory from source code
+
+## Evidence
+
+- Pattern in architecture.testLocation: separate
+

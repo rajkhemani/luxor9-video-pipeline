@@ -1,0 +1,6 @@
+interface:
+  display_name: "Luxor9 Video Pipeline"
+  short_description: "Repo-specific patterns and workflows for luxor9-video-pipeline"
+  default_prompt: "Use the luxor9-video-pipeline repo skill to follow existing architecture, testing, and workflow conventions."
+policy:
+  allow_implicit_invocation: true
