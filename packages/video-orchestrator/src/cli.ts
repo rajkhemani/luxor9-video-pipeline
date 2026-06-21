@@ -114,6 +114,26 @@ async function main() {
       break;
     }
 
+    // ── NVIDIA NIM (free, no credit card) ───────────────
+    case "nvidia-script": {
+      const { FreeNvidiaWorker } = await import("./workers/FreeNvidiaWorker.js");
+      const worker = new FreeNvidiaWorker();
+      console.log(JSON.stringify(await worker.generateScript(JSON.parse(rest[0] ?? "{}"))));
+      break;
+    }
+    case "nvidia-image": {
+      const { FreeNvidiaWorker } = await import("./workers/FreeNvidiaWorker.js");
+      const worker = new FreeNvidiaWorker();
+      console.log(JSON.stringify(await worker.generateImage(JSON.parse(rest[0] ?? "{}"))));
+      break;
+    }
+    case "nvidia-models": {
+      const { FreeNvidiaWorker } = await import("./workers/FreeNvidiaWorker.js");
+      const worker = new FreeNvidiaWorker();
+      console.log(JSON.stringify(await worker.listModels()));
+      break;
+    }
+
     default:
       console.error(`Unknown: ${command}`);
       console.error("");
@@ -127,6 +147,10 @@ async function main() {
       console.error("    free-tts          — Generate voiceover audio");
       console.error("    comfyui-run       — Run a ComfyUI workflow");
       console.error("    comfyui-check     — Check if ComfyUI is running");
+      console.error("  NVIDIA NIM (free key at build.nvidia.com):");
+      console.error("    nvidia-script     — Generate video script with LLM");
+      console.error("    nvidia-image      — Generate image with SDXL/Flux");
+      console.error("    nvidia-models     — List available free models");
       process.exit(1);
   }
 }
