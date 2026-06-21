@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  video-api:
+    build:
+      context: ../..
+      dockerfile: deploy/video-pipeline/Dockerfile
+    image: luxor9/video-pipeline:latest
+    container_name: luxor9-video
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      - TTS_ENGINE=gtts
+      - REMOTION_PROJECT_DIR=/app/packages/video-engine
+      - REMOTION_OUTPUT_DIR=/app/output/videos
+      - AUDIO_OUTPUT_DIR=/app/output/audio
+      - PORT=4000
+    volumes:
+      - video-output:/app/output/videos
+      - audio-output:/app/output/audio
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "1"
+
+  nginx:
+    image: nginx:alpine
+    container_name: luxor9-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - video-output:/opt/output/videos:ro
+    depends_on:
+      - video-api
+
+volumes:
+  video-output:
+  audio-output:
