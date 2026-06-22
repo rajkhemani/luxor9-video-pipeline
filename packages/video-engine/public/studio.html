@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUXOR9 Video Studio</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0a0a0f;color:#e0e0e0;display:flex;align-items:center;justify-content:center;min-height:100vh}
+.container{text-align:center;padding:40px;max-width:600px}
+h1{font-size:2rem;background:linear-gradient(135deg,#00d4ff,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:16px}
+p{color:#888;margin-bottom:24px;line-height:1.6}
+.btn{display:inline-block;padding:12px 32px;border-radius:24px;background:linear-gradient(135deg,#00d4ff,#8b5cf6);color:#fff;text-decoration:none;font-weight:600;margin:4px}
+.endpoints{text-align:left;background:#1a1a2e;border-radius:12px;padding:24px;margin-top:24px}
+.endpoints h3{color:#00d4ff;margin-bottom:12px}
+.endpoints code{display:block;padding:4px 0;color:#8b5cf6;font-size:14px}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>LUXOR9 Video Studio</h1>
+<p>AI-powered video generation pipeline. Create sales videos, product demos, and social clips with zero API keys.</p>
+<a class="btn" href="/docs">API Docs</a>
+<a class="btn" href="/health">Health Check</a>
+<div class="endpoints">
+<h3>Free Pipeline Endpoints</h3>
+<code>POST /videos/free-sales — Create a free sales video</code>
+<code>GET /videos/free-check — Check free pipeline status</code>
+<h3 style="margin-top:16px;color:#00d4ff">Premium Endpoints (API keys required)</h3>
+<code>POST /videos/sales — Create premium sales video</code>
+<code>POST /videos/demo — Create product demo</code>
+<code>POST /videos/social-batch — Create social clips</code>
+</div>
+</div>
+</body>
+</html>

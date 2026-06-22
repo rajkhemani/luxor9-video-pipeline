@@ -11,7 +11,7 @@ from typing import Optional, Dict, Any, List
 from dataclasses import dataclass, field, asdict
 from collections import deque
 
-from app.database import get_db
+from app.database import get_sync_db
 from app.config import get_settings
 
 logger = logging.getLogger("luxor9.agents")
@@ -286,8 +286,13 @@ class BaseAgent(ABC):
             "payload": payload
         }
 
-        self.metrics.messages_sent += 1
         self.memory.append({"type": "sent", "msg": message})
+
+        from app.orchestrator import orchestrator as _orch
+        target = _orch.agents.get(to_agent_id)
+        if target:
+            await target.receive_message(message)
+        self.metrics.messages_sent += 1
 
     async def send_report_up(self, data: Dict):
         """Send a status report to parent agent"""
@@ -376,7 +381,7 @@ class BaseAgent(ABC):
 
     async def _register(self):
         """Register agent in database"""
-        db_gen = get_db()
+        db_gen = get_sync_db()
         try:
             db = next(db_gen)
             from app.models import Agent
@@ -409,13 +414,13 @@ class BaseAgent(ABC):
             logger.error(f"[{self.agent_id}] Register error: {e}")
         finally:
             try:
-                next(db_gen, None)
+                db.close()
             except Exception:
                 pass
 
     async def _log_event(self, event_type: str, data: Dict):
         """Log an event to the database"""
-        db_gen = get_db()
+        db_gen = get_sync_db()
         try:
             db = next(db_gen)
             from app.models import Event
@@ -431,7 +436,7 @@ class BaseAgent(ABC):
             logger.error(f"[{self.agent_id}] Log event error: {e}")
         finally:
             try:
-                next(db_gen, None)
+                db.close()
             except Exception:
                 pass
 

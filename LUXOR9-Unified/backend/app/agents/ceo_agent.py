@@ -126,6 +126,7 @@ Report results clearly. If there are multiple options, present them numbered.
 Task type: {task_type}
 """
 
+        result = None
         try:
             result = await self.reason(prompt)
             task["result"] = result

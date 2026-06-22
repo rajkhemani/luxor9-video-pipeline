@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 export interface DeliveryConfig {
   resendApiKey?: string;
   twilioAccountSid?: string;
@@ -12,7 +14,8 @@ export class DeliveryWorker {
   async uploadToCDN(localPath: string, remoteName?: string): Promise<string> {
     const endpoint = this.config.uploadEndpoint ?? "https://api.luxor9.ai/videos";
     const form = new FormData();
-    const file = await Bun.file(localPath).arrayBuffer().catch(() => null);
+    let file: ArrayBuffer | null = null;
+    try { file = readFileSync(localPath).buffer as ArrayBuffer; } catch {};
     if (!file) {
       console.warn(`[DeliveryWorker] File not found: ${localPath}, returning mock URL`);
       return `${endpoint}/${remoteName ?? "video.mp4"}`;

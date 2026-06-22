@@ -54,7 +54,8 @@ class QueryStreamMetricsTool(BaseTool):
     args_schema: type[BaseModel] = StreamIdInput
 
     def _run(self, stream_id: int) -> str:
-        from app.database import SessionLocal, Stream
+        from app.database import SessionLocal
+from app.models import Stream
         db = SessionLocal()
         try:
             stream = db.query(Stream).filter(Stream.id == stream_id).first()
@@ -92,7 +93,8 @@ class DeployStreamTool(BaseTool):
     args_schema: type[BaseModel] = StreamIdInput
 
     def _run(self, stream_id: int) -> str:
-        from app.database import SessionLocal, Stream
+        from app.database import SessionLocal
+from app.models import Stream
         db = SessionLocal()
         try:
             stream = db.query(Stream).filter(Stream.id == stream_id).first()
@@ -111,7 +113,8 @@ class StopStreamTool(BaseTool):
     args_schema: type[BaseModel] = StreamIdInput
 
     def _run(self, stream_id: int) -> str:
-        from app.database import SessionLocal, Stream
+        from app.database import SessionLocal
+from app.models import Stream
         db = SessionLocal()
         try:
             stream = db.query(Stream).filter(Stream.id == stream_id).first()
@@ -177,7 +180,8 @@ class LogRevenueTool(BaseTool):
     args_schema: type[BaseModel] = RevenueInput
 
     def _run(self, stream_id: int, amount: float, source: str) -> str:
-        from app.database import SessionLocal, Stream
+        from app.database import SessionLocal
+from app.models import Stream
         db = SessionLocal()
         try:
             stream = db.query(Stream).filter(Stream.id == stream_id).first()

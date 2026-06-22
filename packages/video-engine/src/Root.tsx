@@ -23,11 +23,11 @@ export const RemotionRoot = () => {
         demoSteps: [{ title: "Dashboard Overview", description: "See your metrics at a glance", duration: 5 }, { title: "AI Agent Setup", description: "Configure your agent team", duration: 5 }],
         primaryCta: { text: "Start Free Trial", url: "https://luxor9.ai" },
       }} />
-      <Composition id="SocialClip" component={SocialClip} durationInFrames={390} fps={30} width={1080} height={1920} schema={SocialVideoSchema} defaultProps={{
+      <Composition id="SocialClip" component={SocialClip} durationInFrames={570} fps={30} width={1080} height={1920} schema={SocialVideoSchema} defaultProps={{
         format: "instagram", heyGenUrl: "https://example.com/avatar.mp4", hookText: "AI is changing everything",
         bodyPoints: ["Faster decisions", "Smarter automation", "Real-time insights"], ctaText: "Follow for more",
       }} />
-      <Composition id="SocialClip-Square" component={SocialClip} durationInFrames={390} fps={30} width={1080} height={1080} schema={SocialVideoSchema} defaultProps={{
+      <Composition id="SocialClip-Square" component={SocialClip} durationInFrames={570} fps={30} width={1080} height={1080} schema={SocialVideoSchema} defaultProps={{
         format: "linkedin", heyGenUrl: "https://example.com/avatar.mp4", hookText: "AI is changing everything",
         bodyPoints: ["Faster decisions", "Smarter automation", "Real-time insights"], ctaText: "Follow for more",
       }} />

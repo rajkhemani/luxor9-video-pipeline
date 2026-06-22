@@ -12,10 +12,7 @@ from app.database import get_sync_db
 from app.agents.base_agent import AgentStatus
 from app.orchestrator import orchestrator, get_orchestrator
 
-try:
-    from app.database.models import Agent, Stream, Category
-except ImportError:
-    from app.models import Agent, Stream, Category
+from app.models import Agent, Stream, Category
 
 # Pydantic models
 class AgentCreate(BaseModel):

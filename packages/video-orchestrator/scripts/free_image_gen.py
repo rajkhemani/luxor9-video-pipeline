@@ -44,8 +44,8 @@ def generate_image(prompt: str, model: str = "sdxl-turbo", output: str = "output
 
     payload = {"inputs": prompt}
     
-    print(f"  [AI] Generating image with {model}...")
-    print(f"     Prompt: {prompt[:80]}{'...' if len(prompt) > 80 else ''}")
+    print(f"  [AI] Generating image with {model}...", file=sys.stderr)
+    print(f"     Prompt: {prompt[:80]}{'...' if len(prompt) > 80 else ''}", file=sys.stderr)
 
     req = urllib.request.Request(
         info["url"],
@@ -62,7 +62,7 @@ def generate_image(prompt: str, model: str = "sdxl-turbo", output: str = "output
                 if isinstance(data, dict) and "error" in data:
                     print(json.dumps({"success": False, "error": data["error"]}))
                     if "loading" in str(data.get("error", "")):
-                        print("  [wait] Model is loading on HuggingFace servers. Retry in 30s.")
+                        print("  [wait] Model is loading on HuggingFace servers. Retry in 30s.", file=sys.stderr)
                     return False
                 print(json.dumps(data))
                 return False
@@ -74,7 +74,7 @@ def generate_image(prompt: str, model: str = "sdxl-turbo", output: str = "output
             size = output_path.stat().st_size / 1024
             result = {"success": True, "output": str(output_path), "model": model, "size_kb": round(size, 1)}
             print(json.dumps(result))
-            print(f"  [OK] Image saved: {output_path} ({size:.0f} KB)")
+            print(f"  [OK] Image saved: {output_path} ({size:.0f} KB)", file=sys.stderr)
             return True
 
     except urllib.error.HTTPError as e:

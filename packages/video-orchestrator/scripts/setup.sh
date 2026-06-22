@@ -9,15 +9,18 @@ echo "  LUXOR9 Free Video Pipeline Setup"
 echo "========================================"
 echo ""
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+
 # ── Node.js + Remotion ──────────────────────────────
 echo "📦 Step 1/4: Remotion (video engine)..."
-cd "$(dirname "$0")/packages/video-engine"
+cd "$REPO_ROOT/packages/video-engine"
 npm install --silent 2>/dev/null
 echo "  ✅ Remotion ready"
 
 # ── Node.js Orchestrator ────────────────────────────
 echo "📦 Step 2/4: Orchestrator..."
-cd ../video-orchestrator
+cd "$REPO_ROOT/packages/video-orchestrator"
 npm install --silent 2>/dev/null
 echo "  ✅ Orchestrator ready"
 

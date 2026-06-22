@@ -2,6 +2,7 @@
 from app.api.routes import (
     agents_router,
     streams_router,
+    categories_router,
     system_router,
     metrics_router
 )
@@ -9,6 +10,7 @@ from app.api.routes import (
 __all__ = [
     "agents_router",
     "streams_router",
+    "categories_router",
     "system_router",
     "metrics_router"
 ]

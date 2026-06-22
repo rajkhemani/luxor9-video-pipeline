@@ -14,8 +14,6 @@ from app.database.models import (
     Metric,
     Event,
     SystemState,
-    get_engine,
-    get_session,
     init_db as _init_db,
 )
 
@@ -35,7 +33,5 @@ __all__ = [
     "Metric",
     "Event",
     "SystemState",
-    "get_engine",
-    "get_session",
     "init_db",
 ]

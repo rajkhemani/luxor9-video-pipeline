@@ -1,6 +1,6 @@
 """LUXOR9 Database Models - Cross-Database Compatible"""
 from datetime import datetime
-from uuid import uuid4
+from uuid import uuid4, UUID
 from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, ForeignKey, Text, JSON, TypeDecorator
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID, JSONB
 from sqlalchemy.types import CHAR, JSON as SA_JSON
@@ -36,7 +36,7 @@ class GUID(TypeDecorator):
             return value
         if isinstance(value, uuid4().__class__):
             return value
-        return uuid4(value)
+        return UUID(value)
 
 
 class JSONType(TypeDecorator):
@@ -55,13 +55,13 @@ class Agent(Base):
     """Agent table - stores all agents in the hierarchy"""
     __tablename__ = "agents"
 
-    id = Column(GUID(), primary_key=True, default=uuid4)
+    id = Column(String(50), primary_key=True, default=uuid4)
     name = Column(String(50), nullable=False, unique=True)
     agent_class = Column(String(30), nullable=False)
     tier = Column(Integer, nullable=False)
     role = Column(String(100), nullable=False)
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
-    parent_agent_id = Column(GUID(), ForeignKey("agents.id"), nullable=True)
+    parent_agent_id = Column(String(50), ForeignKey("agents.id"), nullable=True)
 
     model = Column(String(50), nullable=False)
     status = Column(String(20), default="idle")
@@ -82,7 +82,7 @@ class Agent(Base):
 
     children = relationship("Agent", backref="parent", remote_side=[id])
     category = relationship("Category", backref="agents")
-    tasks = relationship("Task", backref="assigned_agent", foreign_keys="Task.assigned_to")
+    tasks = relationship("Task", backref="assigned_agent", foreign_keys="Task.assigned_to_id")
     messages = relationship("Message", backref="from_agent", foreign_keys="Message.from_agent_id")
 
 
@@ -118,7 +118,7 @@ class Stream(Base):
     health_score = Column(Float, default=100.0)
     error_count = Column(Integer, default=0)
 
-    assigned_vp_id = Column(GUID(), ForeignKey("agents.id"), nullable=True)
+    assigned_vp_id = Column(String(50), ForeignKey("agents.id"), nullable=True)
 
     config = Column(JSONType, default={})
     deployed_at = Column(DateTime, nullable=True)
@@ -134,9 +134,9 @@ class Task(Base):
     """Tasks assigned to agents"""
     __tablename__ = "tasks"
 
-    id = Column(GUID(), primary_key=True, default=uuid4)
-    assigned_to_id = Column(GUID(), ForeignKey("agents.id"), nullable=True)
-    assigned_by_id = Column(GUID(), ForeignKey("agents.id"), nullable=True)
+    id = Column(String(36), primary_key=True, default=uuid4)
+    assigned_to_id = Column(String(50), ForeignKey("agents.id"), nullable=True)
+    assigned_by_id = Column(String(50), ForeignKey("agents.id"), nullable=True)
     stream_id = Column(Integer, ForeignKey("streams.id"), nullable=True)
 
     task_type = Column(String(50), nullable=False)
@@ -160,9 +160,9 @@ class Message(Base):
     """Inter-agent messages"""
     __tablename__ = "messages"
 
-    id = Column(GUID(), primary_key=True, default=uuid4)
-    from_agent_id = Column(GUID(), ForeignKey("agents.id"), nullable=False)
-    to_agent_id = Column(GUID(), ForeignKey("agents.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=uuid4)
+    from_agent_id = Column(String(50), ForeignKey("agents.id"), nullable=False)
+    to_agent_id = Column(String(50), ForeignKey("agents.id"), nullable=False)
 
     msg_type = Column(String(20), nullable=False)
     priority = Column(String(15), default="P2_MEDIUM")
@@ -184,7 +184,7 @@ class Metric(Base):
 
     id = Column(Integer, primary_key=True)
     stream_id = Column(Integer, ForeignKey("streams.id"), nullable=True)
-    agent_id = Column(GUID(), ForeignKey("agents.id"), nullable=True)
+    agent_id = Column(String(50), ForeignKey("agents.id"), nullable=True)
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
 
     metric_type = Column(String(50), nullable=False)
@@ -201,7 +201,7 @@ class Event(Base):
     id = Column(Integer, primary_key=True)
     event_type = Column(String(50), nullable=False)
     source = Column(String(100), nullable=True)
-    agent_id = Column(GUID(), ForeignKey("agents.id"), nullable=True)
+    agent_id = Column(String(50), ForeignKey("agents.id"), nullable=True)
     stream_id = Column(Integer, ForeignKey("streams.id"), nullable=True)
 
     data = Column(JSONType, default={})

@@ -11,9 +11,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
 settings = get_settings()
 from app.database import init_db, close_db
-from app.api import router as api_router
-from app.websocket import router as ws_router
-from app.core.orchestrator import Orchestrator
+from app.api.routes import (
+    agents_router,
+    streams_router,
+    categories_router,
+    system_router,
+    metrics_router,
+)
+from app.api.ceo_routes import ceo_router
+from app.orchestrator import Orchestrator
 
 
 # Global orchestrator instance
@@ -67,15 +73,19 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS.split(","),
+    allow_origins=settings.cors_origins_list or ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Include routers
-app.include_router(api_router, prefix="/api")
-app.include_router(ws_router, prefix="/ws")
+app.include_router(agents_router, prefix="/api")
+app.include_router(streams_router, prefix="/api")
+app.include_router(categories_router, prefix="/api")
+app.include_router(system_router, prefix="/api")
+app.include_router(metrics_router, prefix="/api")
+app.include_router(ceo_router, prefix="/api")
 
 
 @app.get("/")
@@ -94,7 +104,7 @@ async def health_check():
     """Health check endpoint"""
     return {
         "status": "healthy",
-        "orchestrator": orchestrator.status if orchestrator else "not_initialized"
+        "orchestrator": orchestrator.is_running if orchestrator else "not_initialized"
     }
 
 

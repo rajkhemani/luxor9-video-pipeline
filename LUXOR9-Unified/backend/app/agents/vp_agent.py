@@ -112,7 +112,8 @@ Respond as JSON with: category_status, stream_actions (list), manager_tasks (lis
 
     async def _get_stream_metrics(self) -> List[Dict]:
         """Get metrics for all streams in this category."""
-        from app.database import SessionLocal, Stream
+        from app.database import SessionLocal
+        from app.models import Stream
         db = SessionLocal()
         try:
             streams = db.query(Stream).filter(

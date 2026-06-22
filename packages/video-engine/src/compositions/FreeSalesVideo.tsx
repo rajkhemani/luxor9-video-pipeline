@@ -6,7 +6,7 @@ import { CTAButton } from "../components/CTAButton";
 import { THEME } from "../theme";
 
 export const FreeSalesVideoSchema = z.object({
-  voiceoverUrl: z.string().url(),
+  voiceoverUrl: z.string().default(""),
   productName: z.string(),
   productImageUrl: z.string().url(),
   scriptSegments: z.array(z.object({
@@ -60,9 +60,7 @@ export const FreeSalesVideo: React.FC<Props> = ({ voiceoverUrl, productName, pro
     <AbsoluteFill>
       <GradientBackground animated />
 
-      {voiceoverUrl && voiceoverUrl.startsWith("http") && (
-        <Audio src={voiceoverUrl} />
-      )}
+      {voiceoverUrl && <Audio src={staticFile(voiceoverUrl)} />}
 
       {/* Animated script segments */}
       {scriptSegments.map((seg, i) => (
