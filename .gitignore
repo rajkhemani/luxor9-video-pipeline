@@ -12,3 +12,4 @@ reference/
 .DS_Store
 dist/
 luxor9_deploy/
+opencode.json

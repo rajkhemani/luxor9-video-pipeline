@@ -3,7 +3,7 @@ services:
   - type: web
     name: luxor9-video-api
     runtime: node
-    repo: https://github.com/rajkhemani29/LUXOR9
+    repo: https://github.com/rajkhemani/luxor9-video-pipeline
     branch: main
     buildCommand: cd packages/video-orchestrator && npm install && cd ../video-engine && npm install
     startCommand: cd packages/video-orchestrator && npx tsx src/server.ts
@@ -35,7 +35,7 @@ services:
   - type: worker
     name: luxor9-video-renderer
     runtime: node
-    repo: https://github.com/rajkhemani29/LUXOR9
+    repo: https://github.com/rajkhemani/luxor9-video-pipeline
     branch: main
     buildCommand: cd packages/video-orchestrator && npm install && cd ../video-engine && npm install
     startCommand: cd packages/video-orchestrator && npx tsx src/cli.ts render-worker
