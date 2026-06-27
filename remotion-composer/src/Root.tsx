@@ -1,4 +1,4 @@
-import { Composition, CalculateMetadataFunction } from "remotion";
+import { Composition, CalculateMetadataFunction, staticFile } from "remotion";
 import { Explainer, ExplainerProps } from "./Explainer";
 import {
   CinematicRenderer,
@@ -17,6 +17,7 @@ import { CaptionOverlay, WordCaption } from "./components/CaptionOverlay";
 import { CollageBurst, CollageBurstProps } from "./CollageBurst";
 import { LyricOverlay, LyricOverlayProps } from "./LyricOverlay";
 
+import QuietPowerBrandFilm from "./QuietPowerBrandFilm";
 // ---------------------------------------------------------------------------
 // Theme System — prevents every video from looking like dark fintech
 // ---------------------------------------------------------------------------
@@ -330,6 +331,17 @@ export const Root: React.FC = () => {
           overlay: true,
         } as EndTagProps}
       />
+        <Composition
+          id="QuietPowerBrandFilm"
+          component={QuietPowerBrandFilm}
+          durationInFrames={30 * 55}
+          fps={30}
+          width={1920}
+          height={1080}
+          defaultProps={{
+            narrationSrc: staticFile("audio/narration.wav"),
+          }}
+        />
     </>
   );
 };

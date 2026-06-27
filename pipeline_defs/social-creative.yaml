@@ -1,0 +1,285 @@
+name: social-creative
+version: "1.0"
+description: >
+  Short-form brand ad / social creative pipeline. Takes a branded product or
+  campaign concept and produces platform-optimized video shorts for LinkedIn,
+  Meta (Instagram/Facebook), X, Reddit, Threads, and YouTube Shorts.
+  Fully AI-generated from a text brief — no user-provided assets required.
+  Hybrid generation: AI images + video clips + TTS narration + music, composed
+  per-platform with correct aspect ratios, safe zones, and platform conventions.
+category: generated
+stability: beta
+
+default_checkpoint_policy: guided
+
+reference_input:
+  supported: false
+
+orchestration:
+  mode: executive-producer
+  skill: pipelines/social-creative/executive-producer
+  budget_default_usd: 3.00
+  max_revisions_per_stage: 3
+  max_send_backs: 2
+  max_wall_time_minutes: 45
+
+extensions:
+  custom_scripts: true
+  custom_playbooks: true
+  custom_skills: true
+  custom_tools: false
+
+required_skills:
+  - pipelines/social-creative/executive-producer
+  - pipelines/social-creative/brief-director
+  - pipelines/social-creative/script-director
+  - pipelines/social-creative/scene-director
+  - pipelines/social-creative/asset-director
+  - pipelines/social-creative/edit-director
+  - pipelines/social-creative/compose-director
+  - pipelines/social-creative/publish-director
+  - meta/reviewer
+  - meta/checkpoint-protocol
+
+compatible_playbooks:
+  recommended:
+    - flat-motion-graphics
+  also_works:
+    - clean-professional
+  custom_allowed: true
+
+platforms:
+  - id: tiktok
+    label: TikTok / Reels / Shorts
+    canvas: 1080x1920
+    aspect: "9:16"
+    safe_zone: 0.85
+    max_duration_seconds: 60
+    hook_critical: true
+    cta_style: on_screen_text
+  - id: linkedin
+    label: LinkedIn
+    canvas: 1080x1080
+    aspect: "1:1"
+    safe_zone: 0.90
+    max_duration_seconds: 60
+    hook_critical: true
+    cta_style: caption_and_text
+  - id: meta
+    label: Meta (Instagram / Facebook)
+    canvas: 1080x1080
+    aspect: "1:1"
+    safe_zone: 0.85
+    max_duration_seconds: 30
+    hook_critical: true
+    cta_style: on_screen_text
+  - id: x
+    label: X / Twitter
+    canvas: 1080x1920
+    aspect: "9:16"
+    safe_zone: 0.80
+    max_duration_seconds: 30
+    hook_critical: true
+    cta_style: caption
+  - id: reddit
+    label: Reddit
+    canvas: 1920x1080
+    aspect: "16:9"
+    safe_zone: 0.90
+    max_duration_seconds: 60
+    hook_critical: false
+    cta_style: caption
+  - id: threads
+    label: Threads
+    canvas: 1080x1920
+    aspect: "9:16"
+    safe_zone: 0.80
+    max_duration_seconds: 30
+    hook_critical: true
+    cta_style: on_screen_text
+  - id: youtube-shorts
+    label: YouTube Shorts
+    canvas: 1080x1920
+    aspect: "9:16"
+    safe_zone: 0.85
+    max_duration_seconds: 60
+    hook_critical: true
+    cta_style: on_screen_text
+
+stages:
+  # ── Pre-Production ──────────────────────────────────────────────
+
+  - name: brief
+    skill: pipelines/social-creative/brief-director
+    produces:
+      - brief
+    tools_available: []
+    checkpoint_required: true
+    human_approval_default: true
+    review_focus:
+      - Hook angle is specific and platform-aware (not generic "check this out")
+      - CTA is concrete: "link in bio", "follow for X", "DM for Y", "visit URL"
+      - Tone register is one value from the fixed list
+      - Platform mix is explicit (which of the 6 to produce)
+      - Music plan is present (MANDATORY)
+      - Brand identity is specified: name, tagline, visual vibe
+      - Duration target per platform is declared
+    success_criteria:
+      - Schema-valid brief artifact
+      - brief.hook_angle present and non-generic
+      - brief.cta present and concrete
+      - brief.platforms list non-empty (subset of defined platforms)
+      - brief.music_plan present (source may be `generated` or `none`)
+
+  - name: script
+    skill: pipelines/social-creative/script-director
+    required_artifacts_in:
+      - brief
+    produces:
+      - script
+    tools_available: []
+    checkpoint_required: true
+    human_approval_default: true
+    review_focus:
+      - Script duration matches brief.platforms' max_duration_seconds
+      - Three-act micro-structure: hook (0-3s) -> body/value (3s to 80%) -> CTA (last 20%)
+      - Hook is a single compelling sentence that works without visuals
+      - CTA line exists and matches brief.cta
+      - Speaker direction present for TTS generation
+      - Word count within +/-15% of platform duration targets
+    success_criteria:
+      - Schema-valid script artifact
+      - script.hook present with duration < 4s spoken
+      - script.cta section present
+      - Word count matches 140-160 wpm target across all platform durations
+
+  - name: scene_plan
+    skill: pipelines/social-creative/scene-director
+    required_artifacts_in:
+      - script
+      - brief
+    produces:
+      - scene_plan
+    tools_available: []
+    checkpoint_required: true
+    human_approval_default: true
+    review_focus:
+      - Every script section has a visual treatment
+      - Brand treatment (logo, colors, typography) specified per scene
+      - Platform-specific framing: safe zones, text overlays, CTA placement
+      - Visual variety: no 3+ consecutive scenes of same type
+      - Asset requirements are specific (not "an image of X" — descriptions good enough for T2I)
+    success_criteria:
+      - Schema-valid scene_plan artifact
+      - At least 3 scenes per 15s of content
+      - Per-scene visual_description present and specific
+      - required_assets list with scene linkage
+
+  - name: assets
+    skill: pipelines/social-creative/asset-director
+    required_artifacts_in:
+      - scene_plan
+      - brief
+    produces:
+      - asset_manifest
+    required_tools:
+      - tts_selector
+      - image_selector
+    optional_tools:
+      - video_selector
+      - music_gen
+    tools_available:
+      - tts_selector
+      - image_selector
+      - video_selector
+      - music_gen
+    checkpoint_required: true
+    human_approval_default: false
+    review_focus:
+      - All asset files exist on disk
+      - Narration covers all script sections
+      - Image/video style is consistent across all generated visuals
+      - Brand colors and typography reflected in visual assets
+      - Total cost within approved budget from proposal_packet
+    success_criteria:
+      - Schema-valid asset_manifest with all required assets generated
+      - One narration audio file per script (TTS)
+      - At least one image/video per scene
+      - All file paths resolve to existing files
+
+  - name: edit
+    skill: pipelines/social-creative/edit-director
+    required_artifacts_in:
+      - scene_plan
+      - asset_manifest
+    optional_artifacts_in:
+      - script
+      - brief
+    produces:
+      - edit_decisions
+    tools_available: []
+    checkpoint_required: true
+    human_approval_default: false
+    review_focus:
+      - Platform-specific edit decisions for each target platform
+      - All cuts reference valid assets from manifest
+      - Subtitles enabled for all platforms
+      - Music configured with ducking parameters
+      - No timeline gaps or overlaps
+      - Platform-specific duration limits respected
+      - Brand CTA and logo placement per platform safe zones
+    success_criteria:
+      - Schema-valid edit_decisions artifact
+      - One timeline per platform variant
+      - All timelines within platform max_duration_seconds
+
+  - name: compose
+    skill: pipelines/social-creative/compose-director
+    required_artifacts_in:
+      - edit_decisions
+      - asset_manifest
+      - brief
+    produces:
+      - render_report
+    required_tools:
+      - video_compose
+      - audio_mixer
+    tools_available:
+      - video_compose
+      - audio_mixer
+      - video_stitch
+    checkpoint_required: true
+    human_approval_default: false
+    review_focus:
+      - One output per platform variant
+      - Each output matches its platform canvas and duration
+      - Audio is clear with proper narration/music balance across all variants
+      - Subtitles burned in with playbook-compatible styling
+      - Brand visual identity present (logo, colors) across all outputs
+    success_criteria:
+      - Schema-valid render_report with per-platform output paths
+      - All platform output files exist and pass ffprobe validation
+      - render_report.platforms list matches brief.platforms
+
+  - name: publish
+    skill: pipelines/social-creative/publish-director
+    required_artifacts_in:
+      - render_report
+      - brief
+    optional_artifacts_in:
+      - script
+    produces:
+      - publish_log
+    tools_available: []
+    checkpoint_required: true
+    human_approval_default: true
+    review_focus:
+      - Per-platform caption text generated (hook-first, CTA last)
+      - Per-platform hashtag sets generated (5-15 per platform)
+      - Thumbnail concepts per platform
+      - Export package correct per platform spec
+    success_criteria:
+      - Schema-valid publish_log artifact
+      - Per-platform caption with hook and CTA
+      - Per-platform hashtag set
+      - Export directory contains all platform outputs + metadata

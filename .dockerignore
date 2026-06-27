@@ -1,0 +1,8 @@
+node_modules/
+.git/
+*.log
+output/videos/*
+!output/videos/.gitkeep
+tools/
+reference/
+.DS_Store

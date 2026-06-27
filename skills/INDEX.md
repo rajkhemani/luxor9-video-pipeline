@@ -270,6 +270,19 @@ Stage director skills teach the agent HOW to execute each pipeline stage. Each s
 | Compose Director | `pipelines/localization-dub/compose-director.md` | `compose` | Per-locale rendering, subtitle-fit checks, output labeling |
 | Publish Director | `pipelines/localization-dub/publish-director.md` | `publish` | Locale packaging, metadata precision, QA-note retention |
 
+### Social Creative Pipeline (`pipelines/social-creative/`) — v1.0
+
+| Skill | File | Stage | Key Capabilities |
+|-------|------|-------|-----------------|
+| **Executive Producer** | `pipelines/social-creative/executive-producer.md` | `all` | **7-stage serial orchestration, budget tracking, brand-fidelity gates, cross-platform quality checks** |
+| Brief Director | `pipelines/social-creative/brief-director.md` | `brief` | Brand identity extraction, platform selection, hook angle, tone register, mandatory music plan |
+| Script Director | `pipelines/social-creative/script-director.md` | `script` | Micro-script structure (hook/body/CTA), word budget per platform, enhancement cues |
+| Scene Director | `pipelines/social-creative/scene-director.md` | `scene_plan` | Per-scene visual treatment, asset requirements, platform-specific framing notes |
+| Asset Director | `pipelines/social-creative/asset-director.md` | `assets` | AI generation via TTS/FLUX/ElevenLabs, style consistency, minimal viable asset set |
+| Edit Director | `pipelines/social-creative/edit-director.md` | `edit` | Per-platform timeline derivation from master, narration trim, audio ducking, subtitle config |
+| Compose Director | `pipelines/social-creative/compose-director.md` | `compose` | Per-platform Remotion render, ffprobe validation, render report generation |
+| Publish Director | `pipelines/social-creative/publish-director.md` | `publish` | Per-platform captions/hashtags/thumbnails, export package structure, platform-specific copy |
+
 ## Meta Skills
 
 Cross-cutting skills that apply to all pipelines:

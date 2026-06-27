@@ -1,4 +1,4 @@
-.PHONY: setup install install-dev install-gpu test test-contracts lint clean preflight demo demo-list hyperframes-doctor hyperframes-warm
+.PHONY: setup install install-dev install-gpu test test-contracts lint clean preflight demo demo-list hyperframes-doctor hyperframes-warm remix-setup remix-check remix-demo
 
 # ---- One-command setup ----
 
@@ -75,6 +75,47 @@ lint:
 	python -m py_compile tools/tool_registry.py
 	python -m py_compile tools/cost_tracker.py
 	python -m py_compile tools/composition_validator.py
+
+# ---- Remix: unified stack setup & validation ----
+
+remix-setup:
+	@echo "================================"
+	@echo "  OpenMontage Remix Setup"
+	@echo "  Combined Remotion + HyperFrames"
+	@echo "================================"
+	@echo ""
+	@echo "==> [1/6] Python dependencies..."
+	@pip install -r requirements.txt > /dev/null 2>&1 && echo "    OK" || echo "    FAIL"
+	@echo ""
+	@echo "==> [2/6] Remotion composer (npm install)..."
+	@cd remotion-composer && (npm install 2>&1 | tail -1 | grep -q "found 0 vulnerabilities\|up to date\|added" && echo "    OK" || (npx --yes npm install 2>&1 | tail -1 | grep -q "found 0 vulnerabilities\|up to date\|added" && echo "    OK (via npx)" || echo "    WARN — npm install had issues"))
+	@echo ""
+	@echo "==> [3/6] Free offline TTS (Piper)..."
+	@pip install piper-tts > /dev/null 2>&1 && echo "    OK" || echo "    SKIP (cloud TTS will be used instead)"
+	@echo ""
+	@echo "==> [4/6] HyperFrames runtime (npx cache)..."
+	@npx --yes hyperframes --version > /dev/null 2>&1 && echo "    OK" || echo "    SKIP (will fetch on first render)"
+	@echo ""
+	@echo "==> [5/6] Environment file..."
+	@python -c "import shutil, os; e=os.path.exists('.env'); shutil.copy('.env.example','.env') if not e else None; print('    Created .env' if not e else '    .env already exists')"
+	@echo ""
+	@echo "==> [6/6] Runtime validation..."
+	@python scripts/remix-check.py 2>/dev/null || echo "    Run 'make remix-check' after setup for full validation"
+	@echo ""
+	@echo "================================"
+	@echo "  Remix setup complete!"
+	@echo "  Next: make remix-check — validate both runtimes"
+	@echo "        make remix-demo  — render a combined demo"
+	@echo "================================"
+
+remix-check:
+	@echo "==> Combined Runtime Validation"
+	@python scripts/remix-check.py
+
+remix-demo:
+	@echo "==> Remix Demo — rendering combined Remotion + HyperFrames demo"
+	@echo ""
+	@python scripts/remix-demo.py
 
 clean:
 	python -c "import pathlib, shutil; [shutil.rmtree(p) for p in pathlib.Path('.').rglob('__pycache__')]; [p.unlink() for p in pathlib.Path('.').rglob('*.pyc')]"

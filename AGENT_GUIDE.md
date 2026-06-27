@@ -234,6 +234,7 @@ If the folder has tracks, the proposal and asset stages should present them as o
 | `hybrid` | Source footage plus support visuals | production |
 | `avatar-spokesperson` | Presenter-led avatar or lip-sync videos | production |
 | `localization-dub` | Subtitle, dub, and translated variants | beta |
+| `social-creative` | Short-form brand ad / social creative — 7 platform variants from one text brief | alpha |
 | `framework-smoke` | Test: minimal 2-stage smoke test | test |
 
 > **Beta pipelines** have not been fully audited. They work, but expect rough edges. Mention this when the user selects one.

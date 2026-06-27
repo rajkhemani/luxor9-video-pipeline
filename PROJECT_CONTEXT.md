@@ -95,6 +95,7 @@ Each tool's `agent_skills[]` field bridges Layer 1 → Layer 3. See `skills/INDE
 | `hybrid` | `pipeline_defs/hybrid.yaml` | Source-plus-support hybrid |
 | `avatar-spokesperson` | `pipeline_defs/avatar-spokesperson.yaml` | Avatar presenter |
 | `localization-dub` | `pipeline_defs/localization-dub.yaml` | Localization and dubbing |
+| `social-creative` | `pipeline_defs/social-creative.yaml` | Short-form brand ad / social creative |
 | `framework-smoke` | `pipeline_defs/framework-smoke.yaml` | Test harness |
 
 ## When Building New Pipelines
