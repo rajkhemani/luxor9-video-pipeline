@@ -33,6 +33,7 @@ const QUIET_POWER_THEME: ThemeConfig = {
 interface QuietPowerBrandFilmProps {
   narrationSrc: string;
   durationSeconds: number;
+  [key: string]: unknown;
 }
 
 const QuietPowerBrandFilm: React.FC<QuietPowerBrandFilmProps> = ({

@@ -118,7 +118,7 @@ stages:
     human_approval_default: true
     review_focus:
       - Hook angle is specific and platform-aware (not generic "check this out")
-      - CTA is concrete: "link in bio", "follow for X", "DM for Y", "visit URL"
+      - 'CTA is concrete: "link in bio", "follow for X", "DM for Y", "visit URL"'
       - Tone register is one value from the fixed list
       - Platform mix is explicit (which of the 6 to produce)
       - Music plan is present (MANDATORY)

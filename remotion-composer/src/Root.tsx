@@ -340,6 +340,7 @@ export const Root: React.FC = () => {
           height={1080}
           defaultProps={{
             narrationSrc: staticFile("audio/narration.wav"),
+            durationSeconds: 55,
           }}
         />
     </>
