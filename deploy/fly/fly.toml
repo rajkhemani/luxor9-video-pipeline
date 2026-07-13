@@ -1,0 +1,50 @@
+# Fly.io deployment for the LUXOR9 video pipeline API.
+#
+# Run from the REPO ROOT so the Docker build context includes packages/:
+#   fly launch --copy-config --config deploy/fly/fly.toml --name luxor9-video-api
+#   fly deploy --config deploy/fly/fly.toml
+#
+# With auto_stop_machines + min_machines_running = 0 the app scales to zero
+# when idle, so a hobby deployment costs at or near $0/month.
+
+app = "luxor9-video-api"
+primary_region = "ord"
+
+[build]
+  # Relative to this file: resolves to deploy/video-pipeline/Dockerfile
+  dockerfile = "../video-pipeline/Dockerfile"
+
+[env]
+  PORT = "4000"
+  REMOTION_PROJECT_DIR = "/app/packages/video-engine"
+  REMOTION_OUTPUT_DIR = "/app/output/videos"
+  CHROMIUM_PATH = "/usr/bin/chromium-browser"
+  REMOTION_CHROMIUM_EXECUTABLE = "/usr/bin/chromium-browser"
+
+# Rendered videos are regenerable, but a small volume keeps them across
+# machine restarts. Create it once: fly volumes create video_output --size 1
+[mounts]
+  source = "video_output"
+  destination = "/app/output"
+
+[http_service]
+  internal_port = 4000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "20s"
+    method = "GET"
+    path = "/health"
+
+# 512MB is enough for orchestration + gTTS. Remotion rendering in-container
+# needs 2GB+ — either scale up (fly scale memory 2048) or render locally
+# against the hosted API (see deploy/render/README.md, same pattern applies).
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1

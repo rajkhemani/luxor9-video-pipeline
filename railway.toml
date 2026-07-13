@@ -1,0 +1,19 @@
+# Railway deployment for the LUXOR9 video pipeline API.
+# Railway auto-detects this file at the repo root.
+#
+#   npm i -g @railway/cli
+#   railway login && railway init
+#   railway up
+#
+# Set optional API keys in the Railway dashboard (HEYGEN_API_KEY,
+# MUAPI_API_KEY, RESEND_API_KEY) — see deploy/video-pipeline/.env.example.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "deploy/video-pipeline/Dockerfile"
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
