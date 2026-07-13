@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://luxor9.app/sitemap.xml
