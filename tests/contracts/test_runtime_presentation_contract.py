@@ -47,10 +47,11 @@ _CONVERSATION_TOKENS = [
 
 
 def _planning_stages(manifest: dict[str, Any]) -> list[dict[str, Any]]:
-    """Return every 'proposal' or 'idea' stage (a pipeline may have one or both)."""
+    """Return every planning stage. Most pipelines plan in 'proposal' or
+    'idea'; brief-driven pipelines (e.g. social-creative) plan in 'brief'."""
     out: list[dict[str, Any]] = []
     for stage in manifest.get("stages", []):
-        if stage.get("name") in {"proposal", "idea"}:
+        if stage.get("name") in {"proposal", "idea", "brief"}:
             out.append(stage)
     return out
 
@@ -90,7 +91,7 @@ def test_planning_skill_mentions_runtime_contract(manifest_path: Path):
     manifest = _load_manifest(manifest_path)
     planning = _planning_stages(manifest)
     assert planning, (
-        f"Pipeline {manifest_path.stem} has no 'proposal' or 'idea' stage. "
+        f"Pipeline {manifest_path.stem} has no 'proposal', 'idea', or 'brief' stage. "
         f"Add one, or add this pipeline to _EXCLUDED_PIPELINES with a reason."
     )
 

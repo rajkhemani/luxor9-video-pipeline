@@ -250,6 +250,11 @@ def test_runtime_check_succeeds_when_npm_resolves(monkeypatch):
         "_resolve_npm_package",
         classmethod(lambda cls: {"version": "0.4.5"}),
     )
+    monkeypatch.setattr(
+        HyperFramesCompose,
+        "_cli_smoke_check",
+        lambda self: {"version": "0.4.5"},
+    )
     rc = HyperFramesCompose()._runtime_check()
     # Local binaries must still pass for this to go green.
     if rc["node_major"] is None or not rc["ffmpeg_available"] or not rc["npx_available"]:
@@ -257,6 +262,32 @@ def test_runtime_check_succeeds_when_npm_resolves(monkeypatch):
     assert rc["runtime_available"] is True
     assert rc["npm_package_version"] == "0.4.5"
     assert rc["reasons"] == []
+
+
+def test_runtime_check_fails_when_cli_cannot_execute(monkeypatch):
+    """A resolvable npm package whose CLI exits non-zero (e.g. sandboxed env
+    where the headless browser can't initialize) must mark the runtime
+    unavailable — otherwise validate/render fail late with a governance
+    blocker instead of skipping/flagging up front."""
+    monkeypatch.setattr(
+        HyperFramesCompose, "_npm_resolve_cache", None, raising=False
+    )
+    monkeypatch.setattr(
+        HyperFramesCompose,
+        "_resolve_npm_package",
+        classmethod(lambda cls: {"version": "0.4.5"}),
+    )
+    monkeypatch.setattr(
+        HyperFramesCompose,
+        "_cli_smoke_check",
+        lambda self: {"error": "`hyperframes --version` exit 1: no output"},
+    )
+    rc = HyperFramesCompose()._runtime_check()
+    if rc["node_major"] is None or not rc["ffmpeg_available"] or not rc["npx_available"]:
+        pytest.skip("Local runtime floor not met on this machine")
+    assert rc["runtime_available"] is False
+    assert rc["cli_error"] is not None
+    assert any("CLI failed to execute" in r for r in rc["reasons"])
 
 
 def test_video_compose_render_engines_follow_hyperframes_runtime_check(monkeypatch):

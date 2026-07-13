@@ -14,9 +14,11 @@ free or near-free cloud, with a free domain. One command:
 All cloud targets build the same image: `deploy/video-pipeline/Dockerfile`
 (node:22-alpine + Chromium + FFmpeg).
 
-> **Prerequisite:** the Docker build copies `packages/video-engine/src` and
-> `packages/video-orchestrator/src`. Both packages must have their source
-> present in your checkout before any image builds.
+> **Note:** `packages/*/src` currently contains clearly-labeled stubs — the
+> original orchestrator/engine sources were not carried over in the fork
+> merge. Docker builds succeed and the API boots (`/health`,
+> `/videos/free-check` work; production endpoints return 501). Restore the
+> original sources to enable full functionality.
 
 ## Provider comparison
 
@@ -87,7 +89,7 @@ deploy/
 ├── README.md            # this guide
 ├── deploy-free.sh       # one-command deploy dispatcher
 ├── fly/fly.toml         # Fly.io app config
-├── render/              # Render blueprint + walkthrough
+├── render/README.md     # Render walkthrough (blueprint is render.yaml at repo root)
 ├── oracle/setup.sh      # Oracle Always Free VM bootstrap
 ├── hetzner/             # Hetzner VM compose + setup
 └── video-pipeline/      # Dockerfile, compose, nginx, .env.example

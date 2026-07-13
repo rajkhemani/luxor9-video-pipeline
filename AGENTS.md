@@ -25,7 +25,7 @@ make install-gpu             # Install GPU dependencies (Torch, diffusers)
 ```
 
 - **Windows npm fix:** If `npm install` fails with `ERR_INVALID_ARG_TYPE`, use `npx --yes npm install` instead.
-- **Agent platform configs:** `CLAUDE.md`, `CODEX.md`, `CURSOR.md`, `COPILOT.md`, `.windsurfrules` — all point to `AGENT_GUIDE.md`. No `.cursor/rules/` or `.github/copilot-instructions.md` exist yet.
+- **Agent platform configs:** `CLAUDE.md`, `CODEX.md`, `CURSOR.md`, `COPILOT.md`, `.github/copilot-instructions.md` — all point to `AGENT_GUIDE.md`.
 
 ## Key Config
 
