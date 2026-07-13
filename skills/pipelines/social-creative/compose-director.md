@@ -16,6 +16,16 @@ Edit decisions are locked, assets are on disk. You now render per-platform outpu
 
 ## Process
 
+### 0. Route by render_runtime
+
+`video_compose` dispatches on `edit_decisions.render_runtime`, which was
+locked at the brief stage (`remotion`, `hyperframes`, or `ffmpeg`) and carried
+through edit unchanged. Do NOT let the tool fall back to a default: if the
+locked runtime is unavailable at compose time, that is a blocker — surface it
+per the AGENT_GUIDE escalation structure and wait for an approved
+`render_runtime_selection` decision before swapping. Silent runtime swaps are
+forbidden.
+
 ### 1. Render Per-Platform Outputs
 
 For each platform timeline in `edit_decisions`:

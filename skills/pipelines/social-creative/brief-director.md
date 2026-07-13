@@ -111,7 +111,27 @@ Music is MANDATORY. The ONLY way out is explicit user opt-out:
 
 Default for social-creative: `generated` with energetic/upbeat prompt.
 
-### 7. Record the Brief
+### 7. Select the Render Runtime (MANDATORY)
+
+The brief is where `render_runtime` gets locked for all seven platform
+variants. Check `video_compose.get_info()["render_engines"]` and follow the
+AGENT_GUIDE hard rule: when both Remotion and HyperFrames are available,
+**present both to the user** with a one-line strength and tradeoff for THIS
+brief — never silently default.
+
+- **Remotion** — best when variants lean on the existing React scene stack
+  (stat cards, text cards, caption burn) and deterministic per-platform canvas
+  renders.
+- **HyperFrames** (`render_runtime="hyperframes"`) — best when the creative is
+  kinetic-typography or product-promo styled HTML/CSS/GSAP motion.
+- **FFmpeg** — post-processing and concat only; not a primary runtime for
+  brand-ad motion.
+
+Record the choice — with BOTH runtimes in `options_considered` — as a
+`render_runtime_selection` decision in `decision_log`, and carry it unchanged
+into `edit_decisions.render_runtime` downstream.
+
+### 8. Record the Brief
 
 ```json
 {
@@ -141,7 +161,7 @@ Default for social-creative: `generated` with energetic/upbeat prompt.
 }
 ```
 
-### 8. Quality Gate
+### 9. Quality Gate
 
 - Hook angle is specific, non-generic, creates curiosity
 - CTA is concrete action + destination
@@ -149,6 +169,7 @@ Default for social-creative: `generated` with energetic/upbeat prompt.
 - Brand identity has name, palette, typography, tagline
 - Music plan present (generated or none + reason)
 - Tone is one value from fixed register list
+- `render_runtime` locked with a logged `render_runtime_selection` decision
 
 ## Common Pitfalls
 

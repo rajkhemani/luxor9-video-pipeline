@@ -203,13 +203,13 @@ proposal_packet = {
     "production_plan": {
         "pipeline": "animated-explainer",
         "playbook": "clean-professional",
-        "render_runtime": "remotion",
+        "render_runtime": "ffmpeg",
         "stages": [
             {"stage": "script", "tools": [{"tool_name": "tts_selector", "role": "narration", "available": True}], "approach": "AI-written script with TTS narration"},
             {"stage": "scene_plan", "tools": [], "approach": "5 scenes with motion graphics"},
             {"stage": "assets", "tools": [{"tool_name": "image_selector", "role": "visuals", "available": True}], "approach": "AI-generated images"},
             {"stage": "edit", "tools": [], "approach": "Automated edit decisions"},
-            {"stage": "compose", "tools": [{"tool_name": "video_compose", "role": "render", "available": True}], "approach": "Remotion render"},
+            {"stage": "compose", "tools": [{"tool_name": "video_compose", "role": "render", "available": True}], "approach": "FFmpeg cut/concat render"},
         ],
     },
     "cost_estimate": {
@@ -424,6 +424,7 @@ for i, scene in enumerate(scene_plan["scenes"]):
 
 edit_decisions = {
     "version": "1.0",
+    "render_runtime": "ffmpeg",
     "cuts": [
         {
             "id": f"cut_{scene['id']}",

@@ -226,6 +226,7 @@ class HyperFramesCompose(BaseTool):
     # We cache per-process so the first call pays ~2-5s and subsequent calls
     # (get_info spam from the registry) are free.
     _npm_resolve_cache: Optional[dict[str, str]] = None
+    _cli_smoke_cache: Optional[dict[str, str]] = None
 
     @classmethod
     def _node_major_version(cls) -> Optional[int]:
@@ -301,6 +302,35 @@ class HyperFramesCompose(BaseTool):
             cls._npm_resolve_cache = {"version": version}
         return cls._npm_resolve_cache
 
+    def _cli_smoke_check(self) -> dict[str, str]:
+        """Verify the hyperframes CLI actually executes, not just resolves.
+
+        A resolvable npm package can still fail to run — sandboxed or
+        proxied environments where the CLI's own dependencies (e.g. its
+        headless browser) can't initialize exit non-zero with no output on
+        every subcommand, including `doctor`. `npx hyperframes --version`
+        is the documented lightweight probe (same one `make setup` uses);
+        cached for the process since the first npx run may fetch the package.
+
+        Returns {"version": "<stdout>"} on success, {"error": "<short>"} on
+        any failure. Never raises.
+        """
+        cls = type(self)
+        if cls._cli_smoke_cache is not None:
+            return cls._cli_smoke_cache
+
+        proc = self._run_hf(["--version"], cwd=None, timeout=180, check=False)
+        out = (proc.stdout or "").strip()
+        if proc.returncode == 0 and out:
+            cls._cli_smoke_cache = {"version": out.splitlines()[-1][:100]}
+        else:
+            stderr = (proc.stderr or "").strip()
+            tail = stderr.splitlines()[-1][:200] if stderr else "no output"
+            cls._cli_smoke_cache = {
+                "error": f"`hyperframes --version` exit {proc.returncode}: {tail}"
+            }
+        return cls._cli_smoke_cache
+
     def _runtime_check(self) -> dict[str, Any]:
         """Return availability state for the HyperFrames runtime.
 
@@ -336,6 +366,15 @@ class HyperFramesCompose(BaseTool):
                     f"{npm_resolve['error']}"
                 )
 
+        # A resolvable package can still fail to execute (sandboxed envs
+        # where the CLI's browser dependency can't initialize). Only probe
+        # when everything else passed — the smoke run is the expensive step.
+        cli_smoke: dict[str, str] = {}
+        if not reasons:
+            cli_smoke = self._cli_smoke_check()
+            if "error" in cli_smoke:
+                reasons.append(f"hyperframes CLI failed to execute: {cli_smoke['error']}")
+
         return {
             "runtime_available": not reasons,
             "node_major": node_major,
@@ -344,6 +383,8 @@ class HyperFramesCompose(BaseTool):
             "npm_package": self._NPM_PACKAGE,
             "npm_package_version": npm_resolve.get("version"),
             "npm_resolve_error": npm_resolve.get("error"),
+            "cli_version": cli_smoke.get("version"),
+            "cli_error": cli_smoke.get("error"),
             "reasons": reasons,
         }
 
