@@ -114,6 +114,8 @@ Q8: "why is [topic]" (trending OR important OR everywhere) [current year]
 
 If no trending signal exists, note `timeliness_window: "evergreen"` and move on.
 
+**Deep pulse (Layer 3):** When timeliness matters — the brief is news-adjacent, the user asked "what's hot," or a reference video needs a freshness check — read `.agents/skills/last30days/SKILL.md` and run its recency-scoped sweep (Reddit/HN JSON endpoints, dated X/YouTube/news queries) instead of relying on Batch 2 alone. Its trend report maps directly onto `angles_discovered` and `timeliness_window`.
+
 ### Step 4: Data and Evidence Gathering
 
 **Goal:** Find specific, citable facts that will anchor the script AND drive visual moments.
