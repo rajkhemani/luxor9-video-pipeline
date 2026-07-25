@@ -64,77 +64,115 @@ luxor9-video-pipeline/
 
 ## Installation
 
-### 1. Prerequisites
+> **The exact pathway** — from a clean machine to a rendered video, in ordered stages.
+> Stages 0–4 are required (≈10 minutes). Stages 5–8 are optional add-ons.
+> Every stage ends with a **checkpoint**; do not continue until it passes.
 
-| Requirement | Version | Install |
-|-------------|---------|---------|
-| **Python** | 3.10+ | [python.org](https://www.python.org/downloads/) |
-| **FFmpeg** | any recent | `brew install ffmpeg` (macOS) / `sudo apt install ffmpeg` (Debian/Ubuntu) / [ffmpeg.org](https://ffmpeg.org/download.html) (Windows) |
-| **Node.js** | 18+ (22+ for HyperFrames) | [nodejs.org](https://nodejs.org/) |
+### Stage 0 — System prerequisites
+
+| Requirement | Minimum version | Required for |
+|-------------|----------------|--------------|
+| **Git** | any recent | cloning the repo |
+| **Python** | 3.10+ (3.11 recommended) | the entire pipeline |
+| **pip** | ships with Python | dependency install |
+| **FFmpeg** | any recent | all composition and audio work |
+| **Node.js + npm** | 18+ (**22+** if you want HyperFrames) | Remotion & HyperFrames rendering |
 | **An AI coding assistant** | — | Claude Code, Cursor, Copilot, Windsurf, or Codex |
 
-Verify before continuing:
+Install per OS:
 
+**macOS** (with [Homebrew](https://brew.sh)):
 ```bash
-python3 --version   # >= 3.10
-ffmpeg -version
-node --version      # >= 18
+brew install git python@3.11 ffmpeg node
 ```
 
-### 2. Clone and set up the pipeline
+**Ubuntu / Debian:**
+```bash
+sudo apt update
+sudo apt install -y git python3 python3-pip python3-venv ffmpeg
+# Node 22 via NodeSource (apt's default node is often too old):
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt install -y nodejs
+```
+
+**Windows** (PowerShell, with [winget](https://learn.microsoft.com/windows/package-manager/)):
+```powershell
+winget install Git.Git Python.Python.3.11 Gyan.FFmpeg OpenJS.NodeJS.LTS
+# Re-open the terminal afterwards so PATH updates apply.
+```
+
+**✅ Checkpoint 0** — all four must succeed before continuing:
+```bash
+git --version
+python3 --version   # >= 3.10   (Windows: python --version)
+ffmpeg -version
+node --version      # >= 18 (>= 22 for HyperFrames)
+```
+
+### Stage 1 — Clone the repository
 
 ```bash
 git clone https://github.com/rajkhemani/luxor9-video-pipeline.git
 cd luxor9-video-pipeline
+```
+
+All commands from here on run from the **repo root** (`luxor9-video-pipeline/`) unless a `cd` is shown.
+
+*(Optional but recommended)* isolate Python deps in a virtualenv first:
+```bash
+python3 -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\Activate.ps1
+```
+
+**✅ Checkpoint 1** — `ls pipeline_defs/ tools/ skills/` lists the pipeline manifests, tools, and skills directories.
+
+### Stage 2 — Core pipeline install (one command)
+
+```bash
 make setup
 ```
 
-`make setup` installs the Python requirements, installs the Remotion composer's Node dependencies, installs Piper TTS (free offline narration), and creates your `.env` from the template.
+`make setup` performs exactly these five steps (see `Makefile`) — run them manually if you have no `make` (typical on Windows):
 
-<details>
-<summary><strong>No <code>make</code>? Manual setup</strong></summary>
+| # | What it does | Manual equivalent |
+|---|--------------|-------------------|
+| 1 | Python core deps (`pyyaml`, `pydantic`, `jsonschema`, `python-dotenv`, `Pillow`, `requests`, `numpy`) | `pip install -r requirements.txt` |
+| 2 | Remotion composer Node deps | `cd remotion-composer && npm install && cd ..` |
+| 3 | Free offline TTS (Piper) — skipped gracefully if it fails | `pip install piper-tts` |
+| 4 | HyperFrames CLI cache-warm (≈20 MB, avoids a 30–60 s cold fetch on first render) | `npx --yes hyperframes --version` |
+| 5 | Create `.env` from the template (never overwrites an existing one) | `cp .env.example .env` |
 
+**Windows note:** if step 2 fails with `ERR_INVALID_ARG_TYPE`, run `npx --yes npm install` inside `remotion-composer/` instead.
+
+**✅ Checkpoint 2:**
 ```bash
-pip install -r requirements.txt
-cd remotion-composer && npm install && cd ..
-pip install piper-tts
-cp .env.example .env
+ls .env                                    # exists
+ls remotion-composer/node_modules > /dev/null && echo "remotion deps OK"
+python3 -c "import yaml, pydantic, jsonschema, dotenv, PIL, requests, numpy; print('python deps OK')"
 ```
 
-**Windows:** if `npm install` fails with `ERR_INVALID_ARG_TYPE`, use `npx --yes npm install` instead.
+### Stage 3 — Configure API keys in `.env`
 
-</details>
+Open `.env` (created at the repo root in Stage 2) and fill in what you have. **Every key is optional** — with zero keys you still get Piper narration, free stock/archival footage, Remotion + HyperFrames + FFmpeg composition, and auto-generated subtitles.
 
-### 3. Add API keys (optional — more keys = more tools)
+| Variable | Unlocks | Where to get it |
+|----------|---------|-----------------|
+| `FAL_KEY` | FLUX + Recraft images; Veo, Kling, MiniMax video (biggest single unlock) | [fal.ai/dashboard/keys](https://fal.ai/dashboard/keys) |
+| `GOOGLE_API_KEY` | Google Imagen images + Google TTS (700+ voices) | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
+| `ELEVENLABS_API_KEY` | Premium TTS, AI music, sound effects | elevenlabs.io |
+| `OPENAI_API_KEY` | OpenAI TTS, DALL·E images | platform.openai.com |
+| `XAI_API_KEY` | Grok image generation/editing + Grok video | x.ai |
+| `SUNO_API_KEY` | Full songs / instrumentals | suno.com |
+| `HEYGEN_API_KEY` | VEO, Sora, Runway, Kling, Seedance via one gateway | heygen.com |
+| `RUNWAY_API_KEY` | Runway Gen-4 direct | runwayml.com |
+| `PEXELS_API_KEY` / `PIXABAY_API_KEY` / `UNSPLASH_ACCESS_KEY` | Free stock footage & images | free developer keys on each site |
+| `HF_TOKEN` | Speaker diarization in the transcriber | huggingface.co |
 
-Every key is optional. With zero keys you still get Piper narration, free stock/archival footage, Remotion + HyperFrames + FFmpeg composition, and auto-generated subtitles.
+The full annotated list (incl. Doubao TTS, Modal LTX-2 endpoint, Wav2Lip/SadTalker paths) is in [`.env.example`](.env.example).
 
-```bash
-# .env
+**✅ Checkpoint 3** — `.env` saved at the repo root; never commit it.
 
-# Image + video gateway:
-FAL_KEY=your-key               # FLUX images + Google Veo, Kling, MiniMax video + Recraft images
-
-# Free stock media (free developer keys):
-PEXELS_API_KEY=your-key
-PIXABAY_API_KEY=your-key
-UNSPLASH_ACCESS_KEY=your-key
-
-# Music:
-SUNO_API_KEY=your-key          # Full songs, instrumentals, any genre
-
-# Voice & images:
-ELEVENLABS_API_KEY=your-key    # Premium TTS, AI music, sound effects
-OPENAI_API_KEY=your-key        # OpenAI TTS, DALL-E 3 images
-XAI_API_KEY=your-key           # Grok image edits/generation + Grok video
-GOOGLE_API_KEY=your-key        # Google Imagen images, Google TTS (700+ voices)
-
-# More video providers:
-HEYGEN_API_KEY=your-key        # VEO, Sora, Runway, Kling via single gateway
-RUNWAY_API_KEY=your-key        # Runway Gen-4 direct
-```
-
-### 4. Verify your capability envelope
+### Stage 4 — Verify the capability envelope + smoke test
 
 ```bash
 make preflight
@@ -142,43 +180,83 @@ make preflight
 python -c "from tools.tool_registry import registry; import json; registry.discover(); print(json.dumps(registry.provider_menu_summary(), indent=2))"
 ```
 
-This prints which capabilities (video generation, images, TTS, music, composition) are configured, and which are one env var away from working.
+This prints which capability families (video generation, images, TTS, music, composition) are configured, and which are one env var away from working.
 
-### 5. Optional: local GPU video generation (free)
+Then render something with zero keys:
 
 ```bash
-make install-gpu
-
-# Then add to .env:
-VIDEO_GEN_LOCAL_ENABLED=true
-VIDEO_GEN_LOCAL_MODEL=wan2.1-1.3b   # or wan2.1-14b, hunyuan-1.5, ltx2-local, cogvideo-5b
+make demo             # zero-key demo videos (Remotion-only: charts, text, data viz)
+make demo-list        # list available demos without rendering
+make test-contracts   # contract test suite — no API keys needed
 ```
 
-### 6. Optional: LUXOR9 frontend app
+**✅ Checkpoint 4** — `make preflight` shows Composition configured (FFmpeg at minimum), `make demo` produces MP4 files, and `make test-contracts` passes. **The core install is complete.** Open the repo in your AI assistant and start producing (see [Quick Start](#quick-start)).
+
+---
+
+### Stage 5 (optional) — Local GPU video generation (free, needs NVIDIA GPU)
+
+```bash
+make install-gpu      # torch, torchaudio, torchvision + diffusers, transformers, accelerate
+```
+
+Then enable it in `.env`:
+```bash
+VIDEO_GEN_LOCAL_ENABLED=true
+VIDEO_GEN_LOCAL_MODEL=wan2.1-1.3b   # or: wan2.1-14b, hunyuan-1.5, ltx2-local, cogvideo-5b
+```
+
+**✅ Checkpoint 5** — `make preflight` now lists the local video model under video generation.
+
+### Stage 6 (optional) — LUXOR9 frontend (Next.js 15 design system)
 
 ```bash
 cd apps/luxor9-final
 npm install
-npm run dev        # Next.js dev server
-npm run build      # production build
+npm run dev           # dev server at http://localhost:3000
+npm run build         # production build
+cd ../..
 ```
 
-### 7. Optional: LUXOR9 backend
+### Stage 7 (optional) — LUXOR9 backend (FastAPI)
 
 ```bash
 cd apps/LUXOR9-Unified/backend
 pip install -r requirements.txt
 python main.py
-# or build the container:
+# — or containerized —
 docker build -t luxor9-backend .
+docker run -p 8000:8000 luxor9-backend
+cd ../../..
 ```
 
-### 8. Smoke test
+### Stage 8 (optional) — HyperFrames deep-check & the Remix stack
+
+HyperFrames (HTML/CSS/GSAP composition) needs **Node ≥ 22**:
 
 ```bash
-make demo          # renders zero-key demo videos
-make test-contracts # contract tests, no API keys needed
+make hyperframes-doctor   # full runtime probe: node/ffmpeg/npx + `hyperframes doctor`
+make hyperframes-warm     # refresh the npx cache to the latest release
 ```
+
+Combined Remotion + HyperFrames validation ("Remix" stack):
+
+```bash
+make remix-setup      # guided 6-step setup with per-step OK/FAIL output
+make remix-check      # validate both runtimes
+make remix-demo       # render a combined Remotion + HyperFrames demo
+```
+
+### Troubleshooting
+
+| Symptom | Fix |
+|---------|-----|
+| `npm install` fails with `ERR_INVALID_ARG_TYPE` (Windows) | run `npx --yes npm install` in the same directory |
+| `piper-tts` install fails | safe to ignore — TTS falls back to cloud providers from `.env` |
+| HyperFrames cache-warm fails / offline | first render fetches on demand; or run `make hyperframes-warm` later |
+| `ffmpeg: command not found` after install (Windows) | re-open the terminal (PATH refresh), or add the FFmpeg `bin/` folder to PATH |
+| Node < 22 and you need HyperFrames | upgrade Node (Stage 0 commands); Remotion + FFmpeg still work on Node 18 |
+| Rendering dies on a 512 MB cloud instance | Remotion needs 2 GB+ RAM — render locally against the cloud API (`export RENDER_API_URL=...`) or use a bigger VM (see [Deployment](#deployment)) |
 
 ---
 
@@ -251,6 +329,8 @@ All cloud targets build the same image (`deploy/video-pipeline/Dockerfile`: node
 LUXOR9 ships with a complete brand system alongside the pipeline:
 
 - **[Phase 1 Master Campaign Orchestration](apps/luxor9-final/docs/campaign/PHASE1_AGENT_FRAMEWORKS.md)** — the four-agent campaign framework: brand manifesto and go-to-market gates, "Obsidian & Gold" visual identity, Genesis Interface / Atelier UX specs, and the Three Acts launch architecture with KPI framework.
+- **[Phase 2 Campaign Series — THE NINE](apps/luxor9-final/docs/campaign/PHASE2_CAMPAIGN_SERIES.md)** — the serialized nine-chapter campaign design with canonical SVG key visuals ([`assets/`](apps/luxor9-final/docs/campaign/assets/)) and a self-contained [design board](apps/luxor9-final/docs/campaign/index.html).
+- **[Phase 3 — 30-Day Asset Engine](apps/luxor9-final/docs/campaign/PHASE3_30DAY_ASSET_ENGINE.md)** — five content tracks (UGC / CGI / awareness / brand story / founder journey), a ComfyUI-ready prompt book, the 30-day production calendar, and QA/integrity gates.
 - **[Design System](apps/luxor9-final/docs/DESIGN_SYSTEM.md)** — component and token documentation for the frontend.
 - **Design tokens** — `apps/luxor9-final/design-system/tokens.css` (Obsidian `#030303`, Champagne Gold `#C8A96A`, Pearl `#F5F0E8`).
 
