@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" role="img" aria-label="LUXOR9 campaign key visual — Chapter V: The Atelier">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="42%" r="65%">
+      <stop offset="0%" stop-color="#C8A96A" stop-opacity="0.055"/>
+      <stop offset="60%" stop-color="#C8A96A" stop-opacity="0.015"/>
+      <stop offset="100%" stop-color="#C8A96A" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1080" height="1350" fill="#030303"/>
+  <rect width="1080" height="1350" fill="url(#glow)"/>
+
+  <!-- frames -->
+  <rect x="36" y="36" width="1008" height="1278" fill="none" stroke="#C8A96A" stroke-width="1" opacity="0.55"/>
+  <rect x="50" y="50" width="980" height="1250" fill="none" stroke="#C8A96A" stroke-width="0.5" opacity="0.18"/>
+
+  <!-- masthead -->
+  <text x="540" y="128" font-family="Didot, 'Bodoni MT', 'Playfair Display', Georgia, 'Times New Roman', serif" font-size="34" fill="#F5F0E8" text-anchor="middle" letter-spacing="14">LUXOR9</text>
+  <path d="M 540 152 L 548 164 L 540 176 L 532 164 Z" fill="none" stroke="#C8A96A" stroke-width="1"/>
+
+  <!-- act label, vertical -->
+  <text x="988" y="675" font-family="'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace" font-size="15" fill="#C8A96A" opacity="0.6" letter-spacing="4" text-anchor="middle" transform="rotate(90 988 675)">ACT II · THE UNVEILING</text>
+
+  <!-- ghost numeral -->
+  <text x="540" y="720" font-family="Didot, 'Bodoni MT', 'Playfair Display', Georgia, 'Times New Roman', serif" font-size="560" fill="#C8A96A" opacity="0.07" text-anchor="middle">V</text>
+  <text x="540" y="720" font-family="Didot, 'Bodoni MT', 'Playfair Display', Georgia, 'Times New Roman', serif" font-size="560" fill="none" stroke="#C8A96A" stroke-width="1" opacity="0.12" text-anchor="middle">V</text>
+
+  <!-- motif -->
+
+    <!-- The Atelier: the crucible — a set stone above the fire -->
+    <path d="M 540 380 L 660 560 L 420 560 Z" fill="none" stroke="#C8A96A" stroke-width="1.5"/>
+    <path d="M 540 420 L 575 470 L 540 520 L 505 470 Z" fill="none" stroke="#C8A96A" stroke-width="1.2" opacity="0.9"/>
+    <circle cx="540" cy="470" r="3" fill="#C8A96A"/>
+    <line x1="420" y1="600" x2="660" y2="600" stroke="#C8A96A" stroke-width="1" opacity="0.5"/>
+    <line x1="460" y1="630" x2="620" y2="630" stroke="#C8A96A" stroke-width="0.75" opacity="0.3"/>
+
+
+  <!-- chapter title -->
+  <text x="540" y="898" font-family="Didot, 'Bodoni MT', 'Playfair Display', Georgia, 'Times New Roman', serif" font-size="68" fill="#F5F0E8" text-anchor="middle" letter-spacing="9">THE ATELIER</text>
+  <line x1="505" y1="936" x2="575" y2="936" stroke="#C8A96A" stroke-width="1"/>
+
+  <!-- epigraph -->
+  <text x="540" y="1012" font-family="Didot, 'Bodoni MT', 'Playfair Display', Georgia, 'Times New Roman', serif" font-size="30" font-style="italic" fill="#F5F0E8" opacity="0.62" text-anchor="middle" letter-spacing="0.5">Intelligence, cut and set</text><text x="540" y="1056" font-family="Didot, 'Bodoni MT', 'Playfair Display', Georgia, 'Times New Roman', serif" font-size="30" font-style="italic" fill="#F5F0E8" opacity="0.62" text-anchor="middle" letter-spacing="0.5">like stone.</text>
+
+  <!-- colophon -->
+  <line x1="120" y1="1218" x2="960" y2="1218" stroke="#C8A96A" stroke-width="0.5" opacity="0.3"/>
+  <text x="540" y="1256" font-family="'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace" font-size="15" fill="#C8A96A" opacity="0.75" letter-spacing="3" text-anchor="middle">CHAPTER V OF IX · THE ALCHEMIST · MMXXVI</text>
+  <text x="540" y="1284" font-family="'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#F5F0E8" opacity="0.3" letter-spacing="2" text-anchor="middle">LUXOR9 ATELIER — SERIALIZED CAMPAIGN — BY INVITATION</text>
+</svg>
