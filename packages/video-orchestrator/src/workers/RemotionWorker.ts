@@ -1,7 +1,7 @@
 import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition, renderStill } from "@remotion/renderer";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { isAbsolute, relative, resolve } from "node:path";
 
 export interface RenderOptions {
   compositionId: string; outputPath: string; props: Record<string, unknown>;
@@ -17,6 +17,24 @@ export class RemotionWorker {
     if (!existsSync(this.outputBase)) mkdirSync(this.outputBase, { recursive: true });
   }
 
+  /**
+   * Resolve `outputPath` inside `outputBase`, rejecting anything that escapes it.
+   *
+   * `outputPath` is attacker-controlled: it is built from `req.body.outputName`
+   * on POST /videos/custom and POST /videos/free-sales. Plain `resolve()` does
+   * not confine to the base, so `../../../../root/.ssh/authorized_keys` would
+   * resolve outside the output directory and `mkdirSync(…, {recursive:true})`
+   * would create the path on the way there.
+   */
+  private resolveWithinOutputBase(outputPath: string): string {
+    const out = resolve(this.outputBase, outputPath);
+    const rel = relative(this.outputBase, out);
+    if (rel === "" || rel.startsWith("..") || isAbsolute(rel)) {
+      throw new Error(`Refusing to write outside the output directory: ${outputPath}`);
+    }
+    return out;
+  }
+
   private async getServeUrl(): Promise<string> {
     if (!this.serveUrl) {
       this.serveUrl = await bundle({
@@ -27,7 +45,7 @@ export class RemotionWorker {
   }
 
   async renderVideo(opts: RenderOptions): Promise<string> {
-    const out = resolve(this.outputBase, opts.outputPath);
+    const out = this.resolveWithinOutputBase(opts.outputPath);
     const dir = resolve(out, "..");
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 
@@ -52,7 +70,7 @@ export class RemotionWorker {
   }
 
   async renderStill(opts: RenderOptions & { frame?: number }): Promise<string> {
-    const out = resolve(this.outputBase, opts.outputPath);
+    const out = this.resolveWithinOutputBase(opts.outputPath);
     const dir = resolve(out, "..");
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 

@@ -10,12 +10,33 @@ export interface VideoGenParams { prompt: string; model?: string; aspect_ratio?:
 export interface ImageGenParams { prompt: string; model?: string; aspect_ratio?: string; image_url?: string; }
 export interface CinemaParams { prompt: string; model?: string; aspect_ratio?: string; duration?: number; }
 
+/**
+ * A Muapi endpoint is one or more `/`-separated segments, each starting with an
+ * alphanumeric. This forbids `..`, leading/duplicate slashes, `@`, `:`, and
+ * CR/LF, so a caller-supplied value cannot escape the `/api/v1/` prefix.
+ */
+const SAFE_ENDPOINT = /^[A-Za-z0-9][A-Za-z0-9._-]*(?:\/[A-Za-z0-9][A-Za-z0-9._-]*)*$/;
+
 export class MuapiWorker {
   private apiKey: string;
   constructor(apiKey: string) { this.apiKey = apiKey; }
 
+  /**
+   * `endpoint` derives from the caller-supplied `model` field, which reaches
+   * this class straight from `req.body` on POST /muapi/{t2v,t2i,lip-sync}.
+   * The absolute BASE_URL prefix means the host cannot be swapped, but without
+   * this check `../../` escapes `/api/v1/` and reaches any path on the Muapi
+   * host carrying our `x-api-key`.
+   */
+  private static assertSafeEndpoint(endpoint: string): string {
+    if (!SAFE_ENDPOINT.test(endpoint)) {
+      throw new Error(`Invalid Muapi endpoint/model: ${JSON.stringify(endpoint).slice(0, 120)}`);
+    }
+    return endpoint;
+  }
+
   private async request(endpoint: string, body: Record<string, unknown>): Promise<MuapiResponse> {
-    const res = await fetch(`${BASE_URL}/api/v1/${endpoint}`, {
+    const res = await fetch(`${BASE_URL}/api/v1/${MuapiWorker.assertSafeEndpoint(endpoint)}`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-api-key": this.apiKey },
       body: JSON.stringify(body),
@@ -27,7 +48,7 @@ export class MuapiWorker {
   private async poll(requestId: string, max = 900, interval = 2000): Promise<MuapiResponse> {
     for (let i = 1; i <= max; i++) {
       await new Promise(r => setTimeout(r, interval));
-      const res = await fetch(`${BASE_URL}/api/v1/predictions/${requestId}/result`, { headers: { "x-api-key": this.apiKey } });
+      const res = await fetch(`${BASE_URL}/api/v1/predictions/${encodeURIComponent(requestId)}/result`, { headers: { "x-api-key": this.apiKey } });
       if (!res.ok) { if (res.status < 500) throw new Error(`Poll failed: ${res.status}`); continue; }
       const data: MuapiResponse = await res.json();
       const s = data.status?.toLowerCase() ?? "";
