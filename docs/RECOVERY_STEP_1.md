@@ -297,5 +297,69 @@ Deployment configuration (issue #7), `apps/LUXOR9-Unified`, and
 
 ## State
 
-Changes are **staged in the working tree only. Nothing has been committed.**
-`git status` shows exactly 30 paths, all inside the two target directories.
+The recovery landed as commit `6b171d5` — exactly 30 paths, all inside the two
+target directories, every one byte-identical to `468bf7f`.
+
+---
+
+# Addendum — Security follow-up (`639dc34`)
+
+Everything above describes the repository **as of `6b171d5`**. One follow-up
+commit has since landed on the same branch, so the "byte-identical to `468bf7f`"
+guarantee now holds for `6b171d5` only, not for the branch tip.
+
+CodeQL raised 6 alerts against the restored runtime. They are **pre-existing
+defects in the original code, not regressions** — but restoring the originals
+restored the attack surface (the stubs returned `501` for exactly these routes),
+so two were fixed before the branch went further. Kept as a separate commit
+precisely so the recovery diff stays auditable on its own.
+
+### Fixed
+
+**Path traversal (high) — `RemotionWorker.renderVideo` / `renderStill`.**
+`resolve(outputBase, outputPath)` did not confine to `outputBase`, and
+`outputPath` is built from `req.body.outputName` on the unauthenticated
+`POST /videos/custom` and `POST /videos/free-sales`. Verified by execution:
+
+```
+outputName="../../../../root/.ssh/authorized_keys"  ->  /root/.ssh/authorized_keys.mp4
+outputName="../../../../etc/cron.d/pwn"             ->  /etc/cron.d/pwn.mp4
+```
+
+with `mkdirSync(…, {recursive:true})` creating the tree en route. Now resolved
+through a `path.relative`-based containment check that throws on escape.
+
+**Endpoint injection (medium) — `MuapiWorker.request`.** The endpoint segment
+derives from the caller-supplied `model` field, arriving straight from
+`req.body` on `POST /muapi/{t2v,t2i,lip-sync}`. Now validated against a strict
+segment pattern rejecting `..`, leading/duplicate slashes, `@`, `:`, and CR/LF;
+the polled request id is `encodeURIComponent`'d.
+
+> **Correction.** An earlier assessment of mine described this as host
+> redirection enabling remote exfiltration of `MUAPI_API_KEY`. That was wrong.
+> Because `BASE_URL` is an absolute prefix, the host **cannot** be swapped —
+> every payload stays on `api.muapi.ai`. The real issue is that `../` escaped
+> the `/api/v1/` prefix and could reach any path on the vendor host while
+> carrying our `x-api-key`. Medium severity, not critical, and no third-party
+> key leak.
+
+### Not fixed
+
+`demo.ts:47,81,112` — "shell command built from environment values" (3 medium).
+Left as-is: `demo.ts` is a local developer script with no HTTP reachability.
+
+### Verification
+
+| Check | Result |
+|---|---|
+| All listed attack payloads | rejected |
+| Real model defaults (`kling-v3`, `flux-dev`, `infinite-talk-i2v`) | still pass |
+| Normal output names (`custom/ok.mp4`, `free_sales_123.mp4`) | still pass |
+| Server boots, `/health` responds | pass |
+| `tsc` error count | **unchanged at 7** — same pre-existing set, no new errors |
+
+### Unchanged by this addendum
+
+The 15 pre-existing typecheck errors and the missing
+`packages/video-orchestrator/scripts/` remain exactly as described above. The
+recommended next step is still unchanged.
