@@ -1,0 +1,13 @@
+{
+  "id": "rajkhemanii/luxor9-wan21-video-factory",
+  "title": "Luxor9 Wan21 Video Factory",
+  "code_file": "Luxor9_Wan21_Kaggle.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "machine_shape": "NvidiaTeslaT4",
+  "competition_sources": [],
+  "dataset_sources": []
+}

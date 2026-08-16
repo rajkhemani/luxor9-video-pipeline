@@ -1,0 +1,71 @@
+name: Luxor9 Wan 2.1 automated render → Google Drive
+
+# Fully automatic render pipeline:
+#   Kaggle GPU run (Wan 2.1 + ComfyUI) → download renders → rclone sync → Google Drive
+#
+# Schedule: daily at 03:00 UTC. Also triggerable manually (Actions tab → "Run workflow").
+# Runs the SAME automate_render.py used locally — CI just adds rclone + credentials.
+#
+# Required repo secrets:
+#   KAGGLE_ACCESS_TOKEN  the Kaggle API token (new CLI format, KGAT_...) — kaggle.com → Settings → API
+#   RCLONE_CONF          your rclone.conf, base64-encoded (see note below)
+#   RCLONE_REMOTE        e.g.  gdrive:Luxor9_Seedance2.5_Video_Campaign/renders
+#
+# To create RCLONE_CONF once on any machine with rclone:
+#   rclone config                       # create the "gdrive" remote (OAuth with your Google account)
+#   base64 -w0 ~/.config/rclone/rclone.conf   # then paste output into the GitHub secret
+#
+# NOTE: if the Kaggle account cannot attach a GPU, the kernel errors at cell 1
+# (nvidia-smi missing). Fix the account first: verify phone at kaggle.com/settings.
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    defaults:
+      run:
+        working-directory: kaggle-render
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Kaggle CLI
+        run: pip install kaggle
+
+      - name: Write Kaggle access token
+        run: |
+          mkdir -p ~/.kaggle
+          printf '%s' "${{ secrets.KAGGLE_ACCESS_TOKEN }}" > ~/.kaggle/access_token
+          chmod 600 ~/.kaggle/access_token
+
+      - name: Install rclone
+        run: |
+          curl -sSL https://rclone.org/install.sh | sudo bash
+          rclone version
+
+      - name: Write rclone config from secret
+        run: |
+          mkdir -p ~/.config/rclone
+          printf '%s' "${{ secrets.RCLONE_CONF }}" | base64 -d > ~/.config/rclone/rclone.conf
+          chmod 600 ~/.config/rclone/rclone.conf
+          rclone listremotes
+
+      - name: Run automated render pipeline (push → wait → download → Drive sync)
+        env:
+          RCLONE_REMOTE: ${{ secrets.RCLONE_REMOTE }}
+        run: python automate_render.py --force --timeout 10800
+
+      - name: Upload renders as artifact (backup)
+        uses: actions/upload-artifact@v4
+        with:
+          name: renders
+          path: kaggle-render/renders/
+          if-no-files-found: warn
