@@ -7,7 +7,8 @@ name: Luxor9 Wan 2.1 automated render → Google Drive
 # Runs the SAME automate_render.py used locally — CI just adds rclone + credentials.
 #
 # Required repo secrets:
-#   KAGGLE_ACCESS_TOKEN  the Kaggle API token (new CLI format, KGAT_...) — kaggle.com → Settings → API
+#   KAGGLE_USERNAME      your Kaggle username
+#   KAGGLE_API_TOKEN     your Kaggle API key (from kaggle.com → Settings → API)
 #   RCLONE_CONF          your rclone.conf, base64-encoded (see note below)
 #   RCLONE_REMOTE        e.g.  gdrive:Luxor9_Seedance2.5_Video_Campaign/renders
 #
@@ -40,11 +41,16 @@ jobs:
       - name: Install Kaggle CLI
         run: pip install kaggle
 
-      - name: Write Kaggle access token
+      - name: Write Kaggle credentials
         run: |
           mkdir -p ~/.kaggle
-          printf '%s' "${{ secrets.KAGGLE_ACCESS_TOKEN }}" > ~/.kaggle/access_token
-          chmod 600 ~/.kaggle/access_token
+          cat > ~/.kaggle/kaggle.json << 'EOF'
+          {
+            "username": "${{ secrets.KAGGLE_USERNAME }}",
+            "key": "${{ secrets.KAGGLE_API_TOKEN }}"
+          }
+          EOF
+          chmod 600 ~/.kaggle/kaggle.json
 
       - name: Install rclone
         run: |
