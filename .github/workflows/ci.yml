@@ -21,6 +21,8 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
       - name: Install dependencies
         run: pip install -r requirements-dev.txt
+      - name: Lint (py_compile core tools)
+        run: make lint
       - name: Run tests
         run: python -m pytest tests/ -q
 
@@ -29,6 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
+      fail-fast: false # report BOTH packages' errors even if one fails
       matrix:
         package: [video-orchestrator, video-engine]
     steps:
@@ -44,3 +47,22 @@ jobs:
       - name: Typecheck
         working-directory: packages/${{ matrix.package }}
         run: npx tsc --noEmit
+
+  hyperframes-pin:
+    # The HyperFrames runtime is resolved from npm at render time. The version
+    # is pinned (HYPERFRAMES_VERSION in Makefile / LUXOR9_HYPERFRAMES_VERSION);
+    # this job fails the build if the pinned version stops resolving.
+    name: hyperframes pin resolves
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify pinned hyperframes resolves from npm
+        run: |
+          PIN=$(grep -m1 -oP 'HYPERFRAMES_VERSION \?= \K[0-9.]+' Makefile)
+          test -n "$PIN" || { echo "HYPERFRAMES_VERSION pin missing from Makefile"; exit 1; }
+          echo "Pinned hyperframes version: $PIN"
+          npx --yes "hyperframes@$PIN" --version

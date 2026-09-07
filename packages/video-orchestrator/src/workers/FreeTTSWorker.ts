@@ -61,7 +61,7 @@ export class FreeTTSWorker {
       writeFileSync(textFile, opts.text, "utf-8");
       const result = execSync(
         `"${python}" "${script}" --text-file "${textFile}" --engine ${opts.engine ?? "gtts"} --voice ${opts.voice ?? "en-US"} --output "${safeOutput}"`,
-        { timeout: 60000, encoding: "utf-8", stdio: "pipe", shell: true }
+        { timeout: 60000, encoding: "utf-8", stdio: "pipe" }
       );
       try { unlinkSync(textFile); } catch {}
       return JSON.parse(result.trim());

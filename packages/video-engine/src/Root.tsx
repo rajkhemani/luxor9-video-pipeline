@@ -26,14 +26,18 @@ export const RemotionRoot = () => {
       <Composition id="SocialClip" component={SocialClip} durationInFrames={390} fps={30} width={1080} height={1920} schema={SocialVideoSchema} defaultProps={{
         format: "instagram", heyGenUrl: "https://example.com/avatar.mp4", hookText: "AI is changing everything",
         bodyPoints: ["Faster decisions", "Smarter automation", "Real-time insights"], ctaText: "Follow for more",
+        // Values match the schema .default()s — explicit so defaultProps satisfies the required input type.
+        brandColor: "#00d4ff", showCaptions: true,
       }} />
       <Composition id="SocialClip-Square" component={SocialClip} durationInFrames={390} fps={30} width={1080} height={1080} schema={SocialVideoSchema} defaultProps={{
         format: "linkedin", heyGenUrl: "https://example.com/avatar.mp4", hookText: "AI is changing everything",
         bodyPoints: ["Faster decisions", "Smarter automation", "Real-time insights"], ctaText: "Follow for more",
+        brandColor: "#00d4ff", showCaptions: true,
       }} />
       <Composition id="SocialClip-Landscape" component={SocialClip} durationInFrames={600} fps={30} width={1920} height={1080} schema={SocialVideoSchema} defaultProps={{
         format: "youtube", heyGenUrl: "https://example.com/avatar.mp4", hookText: "AI is changing everything",
         bodyPoints: ["Faster decisions", "Smarter automation", "Real-time insights"], ctaText: "Subscribe for more",
+        brandColor: "#00d4ff", showCaptions: true,
       }} />
 
       {/* Free (no API key) compositions */}
@@ -44,6 +48,8 @@ export const RemotionRoot = () => {
         features: ["AI-powered analytics", "Real-time insights", "Automated workflows"],
         testimonialText: "Transformed how we deploy AI agents", testimonialAuthor: "Sarah K.",
         ctaText: "Get Started Free",
+        // Matches FreeSalesVideoSchema's .default(THEME.colors.primary).
+        primaryColor: "#00d4ff",
       }} />
 
       <Composition id="FreeProductDemo" component={FreeProductDemo} durationInFrames={900} fps={30} width={1920} height={1080} schema={FreeProductDemoSchema} defaultProps={{
@@ -54,6 +60,8 @@ export const RemotionRoot = () => {
           { title: "Multi-Provider", description: "Works with OpenAI, Anthropic, Google, Groq" },
         ],
         primaryCta: { text: "Start Free Trial", url: "https://luxor9.ai" },
+        // Matches FreeProductDemoSchema's .default("Key Features").
+        featureTitle: "Key Features",
       }} />
 
       <Composition id="FreeSocialClip" component={FreeSocialClip} durationInFrames={450} fps={30} width={1080} height={1920} schema={FreeSocialClipSchema} defaultProps={{
@@ -61,6 +69,8 @@ export const RemotionRoot = () => {
         hookText: "AI is changing everything 🚀",
         bodyPoints: ["Deploy 179+ agents in minutes", "Real-time analytics dashboard", "Multi-provider LLM support"],
         ctaText: "Follow @luxor9 for more",
+        // Matches FreeSocialClipSchema's .default(true).
+        showCaptions: true,
       }} />
 
       <Composition id="FreeSocialClip-Square" component={FreeSocialClip} durationInFrames={450} fps={30} width={1080} height={1080} schema={FreeSocialClipSchema} defaultProps={{
@@ -68,6 +78,7 @@ export const RemotionRoot = () => {
         hookText: "AI is changing everything",
         bodyPoints: ["Deploy 179+ agents in minutes", "Real-time analytics", "Multi-provider support"],
         ctaText: "Follow @luxor9 for more",
+        showCaptions: true,
       }} />
 
       <Composition id="FreeSocialClip-Landscape" component={FreeSocialClip} durationInFrames={600} fps={30} width={1920} height={1080} schema={FreeSocialClipSchema} defaultProps={{
@@ -75,6 +86,7 @@ export const RemotionRoot = () => {
         hookText: "AI is changing everything",
         bodyPoints: ["Deploy 179+ agents in minutes", "Real-time analytics dashboard", "Multi-provider LLM support"],
         ctaText: "Subscribe for more",
+        showCaptions: true,
       }} />
     </>
   );
