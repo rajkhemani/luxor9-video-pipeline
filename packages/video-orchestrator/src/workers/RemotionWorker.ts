@@ -63,7 +63,8 @@ export class RemotionWorker {
       outputLocation: out,
       inputProps: opts.props as Record<string, unknown>,
       scale: opts.scale ?? 1,
-      quality: opts.quality ?? 80,
+      // Remotion 4.x renamed `quality` to `jpegQuality` (old name is typed `never`).
+      jpegQuality: opts.quality ?? 80,
     });
 
     return out;

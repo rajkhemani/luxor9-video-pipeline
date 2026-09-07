@@ -16,6 +16,8 @@ import jsonschema
 
 from schemas.artifacts import ARTIFACT_NAMES, validate_artifact
 
+from lib.project_names import validate_project_name
+
 # All known stages across all pipelines (used only for artifact name lookup).
 ALL_KNOWN_STAGES = frozenset([
     "research", "proposal", "idea", "script", "scene_plan",
@@ -209,6 +211,9 @@ def write_checkpoint(
     metadata: Optional[dict] = None,
 ) -> Path:
     """Write a checkpoint file for a pipeline stage."""
+    # project_id is user-controlled and joined into a filesystem path —
+    # validate against traversal before any disk write.
+    validate_project_name(project_id)
     valid_stages = (
         set(get_pipeline_stages(pipeline_type)) if pipeline_type
         else ALL_KNOWN_STAGES

@@ -12,12 +12,15 @@ export class DeliveryWorker {
   async uploadToCDN(localPath: string, remoteName?: string): Promise<string> {
     const endpoint = this.config.uploadEndpoint ?? "https://api.luxor9.ai/videos";
     const form = new FormData();
-    const file = await Bun.file(localPath).arrayBuffer().catch(() => null);
-    if (!file) {
+    // This service runs on Node (tsx, Node 22) — Bun.file() does not exist here
+    // and would crash at runtime. Use the cross-runtime fs API instead.
+    const { readFile } = await import("node:fs/promises");
+    const buffer = await readFile(localPath).catch(() => null);
+    if (!buffer) {
       console.warn(`[DeliveryWorker] File not found: ${localPath}, returning mock URL`);
       return `${endpoint}/${remoteName ?? "video.mp4"}`;
     }
-    const blob = new Blob([file]);
+    const blob = new Blob([new Uint8Array(buffer)]);
     form.append("video", blob, remoteName ?? "video.mp4");
 
     const res = await fetch(endpoint, { method: "POST", body: form });

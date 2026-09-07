@@ -57,7 +57,7 @@ export class FreeImageWorker {
       const python = this.findPython();
       const result = execSync(
         `${python} "${script}" --prompt "${opts.prompt.replace(/"/g, "'")}" --model ${opts.model ?? "sdxl-turbo"} --output "${outputPath.replace(/\\/g, "/")}"${opts.huggingfaceToken ? ` --token ${opts.huggingfaceToken}` : ""}`,
-        { timeout: 180_000, encoding: "utf-8", stdio: "pipe", shell: true }
+        { timeout: 180_000, encoding: "utf-8", stdio: "pipe" }
       );
       const parsed = JSON.parse(result.trim());
       if (parsed.success) {

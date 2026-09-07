@@ -89,3 +89,7 @@ tools/ComfyUI/node_modules/
 tools/hf-cache/
 reference/
 luxor9_deploy/
+
+# Local virtual environments
+.venv/
+venv/

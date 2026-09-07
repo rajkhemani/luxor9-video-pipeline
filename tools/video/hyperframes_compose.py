@@ -220,6 +220,11 @@ class HyperFramesCompose(BaseTool):
 
     _NODE_FLOOR_MAJOR = 22
     _NPM_PACKAGE = "hyperframes"  # published npm name (NOT @hyperframes/cli — that's 404)
+    # Pinned npm version. Previously every npx call resolved "latest",
+    # meaning upstream releases could change render behavior silently under a
+    # locked pipeline. Keep in sync with Makefile HYPERFRAMES_VERSION;
+    # override per-environment via LUXOR9_HYPERFRAMES_VERSION.
+    _NPM_VERSION = os.environ.get("LUXOR9_HYPERFRAMES_VERSION", "0.8.30")
     # Process-level cache for the npm resolve check. Shape:
     #   {"version": "0.4.5"}   → package resolves
     #   {"error": "<short>"}   → resolution failed (offline, unpublished, etc.)
@@ -382,6 +387,7 @@ class HyperFramesCompose(BaseTool):
             "npx_available": npx_ok,
             "npm_package": self._NPM_PACKAGE,
             "npm_package_version": npm_resolve.get("version"),
+            "npm_package_pinned_version": self._NPM_VERSION,
             "npm_resolve_error": npm_resolve.get("error"),
             "cli_version": cli_smoke.get("version"),
             "cli_error": cli_smoke.get("error"),
@@ -1169,7 +1175,7 @@ class HyperFramesCompose(BaseTool):
         want to raise CalledProcessError on non-zero exits — the caller
         parses lint/validate/render exit codes itself.
         """
-        cmd = ["npx", "--yes", "hyperframes", *args]
+        cmd = ["npx", "--yes", f"{self._NPM_PACKAGE}@{self._NPM_VERSION}", *args]
         # On Windows, resolve the .cmd wrapper so subprocess can find it
         # without shell=True.
         if os.name == "nt":

@@ -25,7 +25,37 @@ on:
   workflow_dispatch: {}
 
 jobs:
+  # Secrets are not visible to `if:` conditions directly, so a preflight job
+  # checks them. When secrets are absent (fresh fork / not yet configured)
+  # the render job is skipped with a notice instead of failing the daily cron
+  # and drenching everyone in failure notifications.
+  secret-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+    steps:
+      - name: Check required secrets
+        id: check
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+          RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
+        run: |
+          missing=""
+          [ -z "$KAGGLE_USERNAME" ]  && missing="$missing KAGGLE_USERNAME"
+          [ -z "$KAGGLE_API_TOKEN" ] && missing="$missing KAGGLE_API_TOKEN"
+          [ -z "$RCLONE_CONF" ]      && missing="$missing RCLONE_CONF"
+          if [ -n "$missing" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping render: missing repo secrets:${missing}. See workflow header for setup."
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
   render:
+    needs: secret-preflight
+    if: needs.secret-preflight.outputs.ready == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 240
     defaults:
