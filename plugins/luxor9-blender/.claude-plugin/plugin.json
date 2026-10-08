@@ -1,0 +1,8 @@
+{
+  "name": "luxor9-blender",
+  "version": "0.1.0",
+  "description": "LUXOR9 Studio 3D scene capability: connects the agent to a running Blender through blender-mcp.",
+  "author": {
+    "name": "LUXOR9"
+  }
+}

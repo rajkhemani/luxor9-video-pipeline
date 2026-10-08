@@ -163,6 +163,14 @@ This applies especially to:
 - prompt-only substitutes for reference-driven generation,
 - still-image animatics in place of true motion.
 
+### Exception: LUXOR9 Studio surface
+
+When the user works through LUXOR9 Studio (`/studio` or a capability short name such as `/ad` or `/carousel`; see `.claude/skills/studio/SKILL.md`), the announcements above use capability labels and cost tiers instead of tool, provider and model names: "Ad creation, free route" or "premium upgrade, about $0.80". Runtime choices are presented by what each option is best at, without naming the runtime. Everything else in this contract still holds:
+
+- the exact tool, provider, model and runtime are still recorded in `decision_log`,
+- moving from a free route to a paid one still needs the user's explicit upgrade of that asset,
+- blockers and substitutions are still surfaced before acting, in plain language.
+
 ## Orchestrator
 
 The agent itself orchestrates the production state machine:

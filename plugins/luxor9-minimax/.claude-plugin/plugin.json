@@ -1,0 +1,8 @@
+{
+  "name": "luxor9-minimax",
+  "version": "0.1.0",
+  "description": "LUXOR9 Studio Motion capability: connects the agent to MiniMax video, image and voice generation through the official minimax-mcp server (paid API).",
+  "author": {
+    "name": "LUXOR9"
+  }
+}
