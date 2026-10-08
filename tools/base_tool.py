@@ -20,6 +20,32 @@ from pathlib import Path
 from typing import Any, Callable, Optional
 
 
+def parse_env_line(line: str) -> Optional[tuple[str, str]]:
+    """Parse one ``KEY=value`` line of a .env file; None for blanks and comments.
+
+    As in a shell, a ``#`` after whitespace starts a comment: the
+    ``.env.example`` placeholder ``FAL_KEY=   # FLUX images...`` sets FAL_KEY
+    to "" so an unfilled key never reads as configured, while
+    ``COLOR=#C8A96A`` keeps its value.
+    """
+    line = line.strip()
+    if not line or line.startswith("#") or "=" not in line:
+        return None
+    key, _, raw = line.partition("=")
+    key = key.strip()
+    value = raw.strip()
+    if value.startswith("#") and raw[:1].isspace():
+        value = ""
+    value = value.strip("'\"")
+    # Strip inline comments: VAR=value  # comment
+    # But only if the # is preceded by whitespace (avoid stripping from values like colors)
+    if "  #" in value:
+        value = value[:value.index("  #")].rstrip()
+    elif "\t#" in value:
+        value = value[:value.index("\t#")].rstrip()
+    return (key, value) if key else None
+
+
 def _load_dotenv() -> None:
     """Load .env into os.environ once at import time.
 
@@ -32,20 +58,9 @@ def _load_dotenv() -> None:
         return
     with open(env_path, encoding="utf-8", errors="ignore") as f:
         for line in f:
-            line = line.strip()
-            if not line or line.startswith("#") or "=" not in line:
-                continue
-            key, _, value = line.partition("=")
-            key = key.strip()
-            value = value.strip().strip("'\"")
-            # Strip inline comments: VAR=value  # comment
-            # But only if the # is preceded by whitespace (avoid stripping from values like colors)
-            if "  #" in value:
-                value = value[:value.index("  #")].rstrip()
-            elif "\t#" in value:
-                value = value[:value.index("\t#")].rstrip()
-            if key and key not in os.environ:
-                os.environ[key] = value
+            parsed = parse_env_line(line)
+            if parsed and parsed[0] not in os.environ:
+                os.environ[parsed[0]] = parsed[1]
 
 
 _load_dotenv()

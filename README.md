@@ -5,6 +5,8 @@
 <p align="center">
   <a href="#what-is-luxor9">What Is LUXOR9</a> &nbsp;·&nbsp;
   <a href="#installation">Installation</a> &nbsp;·&nbsp;
+  <a href="#end-to-end-install">End-to-End Install</a> &nbsp;·&nbsp;
+  <a href="#path-h--the-agent-install-copy-paste-llm-prompts">LLM Install Prompts</a> &nbsp;·&nbsp;
   <a href="#pick-your-path">Pick Your Path</a> &nbsp;·&nbsp;
   <a href="#quick-start">Quick Start</a> &nbsp;·&nbsp;
   <a href="#pipelines">Pipelines</a> &nbsp;·&nbsp;
@@ -31,6 +33,7 @@ On top of the upstream engine, this repository adds:
 - **LUXOR9 apps** — a Next.js design-system frontend (`apps/luxor9-final`) and a FastAPI backend (`apps/LUXOR9-Unified`).
 - **One-command free-cloud deployment** — Fly.io, Railway, Render, Oracle Cloud, or local Docker via `deploy/deploy-free.sh`.
 - **Brand & campaign framework** — the LUXOR9 visual identity ("Obsidian & Gold"), design tokens, and the Phase 1 master campaign orchestration docs.
+- **LUXOR9 Studio + bring your own keys** — short capability names (`/ad`, `/carousel`, …) over hidden model routes, a `luxor9-studio` MCP server, a brand quality gate, and BYOK support for OpenRouter (video), NVIDIA NIM (planning) and MiniMax, usable from Claude Code, OpenCode, Hermes Agent or DeepSeek Harness. See [`harnesses/README.md`](harnesses/README.md).
 
 The core loop is unchanged from upstream: pipelines are declarative YAML manifests, stage director skills teach the agent how to execute each stage, tools are auto-discovered through a registry, and every creative decision is checkpointed, reviewed, and logged.
 
@@ -56,7 +59,14 @@ luxor9-video-pipeline/
 │   │   └── docs/campaign/  # Phase 1 master campaign orchestration
 │   └── LUXOR9-Unified/     # FastAPI backend
 ├── deploy/                 # Fly.io / Railway / Render / Oracle / Hetzner configs
-├── lib/                    # Checkpoints, config, pipeline loader
+├── lib/                    # Checkpoints, config, pipeline loader, Studio MCP server
+├── capabilities.yaml       # Studio short names → hidden routes ("mix" cost policy)
+├── brand/                  # Brand rules for the brand quality gate
+├── .claude/skills/         # Studio short-name skills (/studio, /ad, /ugc, ...)
+├── .mcp.json               # Registers the luxor9-studio MCP server (Claude Code)
+├── plugins/                # Opt-in Claude Code plugins: Blender, ComfyUI, MiniMax
+├── opencode.json           # OpenCode: Studio MCP server + NIM/OpenRouter providers
+├── harnesses/              # Hermes + DeepSeek Harness config snippets, BYOK guide
 └── tests/                  # Contract tests, QA integration tests
 ```
 
@@ -69,6 +79,10 @@ luxor9-video-pipeline/
 There is no single "right" install. Pick the path that matches your situation —
 every one is exact, tested, and ends in a working render.
 
+> **New here?** Follow the [End-to-End Install](#end-to-end-install): zero to a finished ad, then onto
+> your own keys, in one page. Or paste [one prompt](#path-h--the-agent-install-copy-paste-llm-prompts)
+> into your AI assistant and let it install and verify for you.
+
 ### Pick your path
 
 | # | Path | You want… | Time | Local deps |
@@ -80,6 +94,7 @@ every one is exact, tested, and ends in a working render.
 | **E** | [The Cloud](#path-e--the-cloud-one-command-deploy) | a hosted API, free tier | ~5 min | a CLI + account |
 | **F** | [The Colab GPU](#path-f--the-colab-gpu-free-t4) | free GPU image/video generation | ~5 min | a browser |
 | **G** | [The Codespace](#path-g--the-codespace--dev-container) | browser-only, nothing local | ~2 min | a browser |
+| **H** | [The Agent Install](#path-h--the-agent-install-copy-paste-llm-prompts) | to paste one prompt and let your AI assistant install, verify and connect everything | ~15 min | Python, Node, FFmpeg + an agent |
 
 All paths share **Stage 0** below. Do that first.
 
@@ -90,7 +105,8 @@ Stage 0 ─┬─> A  Speedrun ────────> render
          ├─> D  docker ──────────> API + render
          ├─> E  deploy-free.sh ──> hosted API
          ├─> F  Colab ───────────> GPU backend
-         └─> G  Codespace ───────> full env in browser
+         ├─> G  Codespace ───────> full env in browser
+         └─> H  LLM prompts ─────> agent installs, verifies, connects Studio
 ```
 
 ---
@@ -198,7 +214,7 @@ by hand — that's [Path C](#path-c--the-manual-install-no-make).
 
 | # | What it does |
 |---|--------------|
-| 1 | Python core deps — `pyyaml`, `pydantic`, `jsonschema`, `python-dotenv`, `Pillow`, `requests`, `numpy` |
+| 1 | Python core deps (`requirements.txt`) — `pyyaml`, `pydantic`, `jsonschema`, `python-dotenv`, `Pillow`, `requests`, `numpy`, `mcp` (Studio MCP server) |
 | 2 | Remotion composer Node deps |
 | 3 | Free offline TTS (Piper) — skipped gracefully if it fails |
 | 4 | HyperFrames CLI cache-warm (≈20 MB, avoids a 30–60 s cold fetch on first render) |
@@ -210,7 +226,7 @@ by hand — that's [Path C](#path-c--the-manual-install-no-make).
 ```bash
 ls .env                                    # exists
 ls remotion-composer/node_modules > /dev/null && echo "remotion deps OK"
-python3 -c "import yaml, pydantic, jsonschema, dotenv, PIL, requests, numpy; print('python deps OK')"
+python3 -c "import yaml, pydantic, jsonschema, dotenv, PIL, requests, numpy, mcp; print('python deps OK')"
 ```
 
 ### Stage 3 — Configure API keys in `.env`
@@ -229,6 +245,9 @@ Open `.env` (created at the repo root in Stage 2) and fill in what you have. **E
 | `RUNWAY_API_KEY` | Runway Gen-4 direct | runwayml.com |
 | `PEXELS_API_KEY` / `PIXABAY_API_KEY` / `UNSPLASH_ACCESS_KEY` | Free stock footage & images | free developer keys on each site |
 | `HF_TOKEN` | Speaker diarization in the transcriber | huggingface.co |
+| `OPENROUTER_API_KEY` | Video generation through every model OpenRouter lists (`tools/video/openrouter_video.py`) + the `openrouter` planning-model alias | [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys) |
+| `NVIDIA_API_KEY` | Planning and scripting on NVIDIA NIM text models (`nim` alias). **Not video** | [build.nvidia.com](https://build.nvidia.com) |
+| `MINIMAX_API_KEY` + `MINIMAX_API_HOST` | "Motion" via the `luxor9-minimax` plugin. **Export in your shell too** — plugins don't read `.env` | MiniMax platform |
 
 The full annotated list (incl. Doubao TTS, Modal LTX-2 endpoint, Wav2Lip/SadTalker paths) is in [`.env.example`](.env.example).
 
@@ -344,7 +363,7 @@ cp .env.example .env                   # Windows: copy .env.example .env
 
 **Verify:**
 ```bash
-python3 -c "import yaml, pydantic, jsonschema, dotenv, PIL, requests, numpy; print('python deps OK')"
+python3 -c "import yaml, pydantic, jsonschema, dotenv, PIL, requests, numpy, mcp; print('python deps OK')"
 ls remotion-composer/node_modules >/dev/null && echo "remotion deps OK"
 ls .env && echo ".env OK"
 ```
@@ -452,7 +471,327 @@ make setup && make demo
 
 ---
 
-### Troubleshooting
+## End-to-End Install
+
+Zero to a finished ad, then onto your own keys and your own agent, on one page. Every step ends
+with a **check**; don't move on until it passes. About 15 minutes plus downloads. Prefer to have
+your agent do it? Each step has a matching [copy-paste prompt](#path-h--the-agent-install-copy-paste-llm-prompts).
+
+```
+1 prerequisites → 2 install → 3 verify core → 4 keys → 5 connect agent → 6 verify agent
+→ 7 first ad (free) → 8 first paid clip (optional) → 9 extra engines (optional)
+```
+
+### Step 1 — Prerequisites
+
+Do [Stage 0](#stage-0--system-prerequisites) (Git, Python 3.10+, FFmpeg, Node 18+/22+). Then install
+the agent you'll drive LUXOR9 with:
+
+| Agent | Install | Start |
+|---|---|---|
+| **Claude Code** | `curl -fsSL https://claude.ai/install.sh \| bash` | `claude` |
+| **OpenCode** | `curl -fsSL https://opencode.ai/install \| bash` or `npm install -g opencode-ai` | `opencode` |
+| **Hermes Agent** | `curl -fsSL https://hermes-agent.nousresearch.com/install.sh \| bash` | `hermes chat` |
+| **DeepSeek Harness** | nothing to install (runs through `npx`); developer preview | `npx @deepseek-ai/dsh web` → `http://127.0.0.1:3080` |
+| Cursor / Copilot / Codex / Windsurf | your editor | runs the pipelines; Studio MCP server optional (Step 5) |
+
+**Check:** the agent starts and answers a message.
+
+### Step 2 — Install LUXOR9
+
+```bash
+git clone https://github.com/rajkhemani/luxor9-video-pipeline.git
+cd luxor9-video-pipeline
+python3 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\Activate.ps1
+make setup                         # no make? run Path C step by step
+```
+
+The virtualenv is **not optional** on this path. Debian 12+ and Ubuntu 23.04+ refuse system-wide
+`pip install` (`externally-managed-environment`), `make setup` calls `python` and `pip`, which many
+systems only provide under those names inside a venv, and the Studio MCP server needs the venv's
+interpreter (Step 5).
+
+**Check:**
+```bash
+python -c "import yaml, pydantic, jsonschema, dotenv, PIL, requests, numpy, mcp; print('python deps OK')"
+ls .env && echo ".env OK"
+```
+
+### Step 3 — Verify the core (no keys, no cost)
+
+```bash
+make preflight        # capability menu (JSON)
+make test-contracts   # contract tests
+make demo             # zero-key MP4s → projects/demos/renders/
+```
+
+**Check:** contract tests pass, `make demo` writes MP4s, and preflight shows FFmpeg composition with
+**no keyed provider** (fal, Google, ElevenLabs, OpenRouter, …) available yet. Paid providers showing
+as available before you've added any key means your checkout predates the `.env` placeholder fix
+(empty keys were read as their comment text): `git pull`.
+
+### Step 4 — Add your keys
+
+Keys live in two places, because two kinds of process read them:
+
+| Key | Put it in | Read by | Unlocks |
+|---|---|---|---|
+| `OPENROUTER_API_KEY` | `.env` | video tool, `openrouter` model alias, Studio server | **Video** through every model OpenRouter lists; planning via the `openrouter` alias |
+| `OPENROUTER_VIDEO_MODEL` (optional) | `.env` | video tool | default video model id (pick one in Step 8) |
+| `NVIDIA_API_KEY` | `.env` | `nim` model alias | planning/scripting on NIM text models. **No video:** hosted NIM video is unconfirmed; Cosmos NIM is self-hosted on GPUs |
+| `FAL_KEY` | `.env` | fal tools | FLUX/Recraft images; Veo, Kling, MiniMax, Seedance video |
+| `MINIMAX_API_KEY` + `MINIMAX_API_HOST` | your **shell** (`export`), before starting the agent | `luxor9-minimax` plugin | "Motion". Host must match the key's platform: `https://api.minimax.io` or `https://api.minimaxi.com` |
+| `NVIDIA_API_KEY` / `OPENROUTER_API_KEY` as the **agent's model** | your shell (OpenCode), `~/.hermes/.env` (Hermes), dsh Settings → Models | the harness itself | your keys as the agent's brain |
+
+`.env` is gitignored and loaded automatically by every Python tool and by the Studio server. Plugins
+and harnesses are separate processes started by your agent; they see only what is exported in the
+shell that launched the agent. **Never paste a key into a chat** — it goes to the model provider. Edit
+`.env` yourself.
+
+**Check** (prints presence only, never values):
+```bash
+python -c "import tools.base_tool, os; [print(f'{k:24}', 'set' if os.environ.get(k) else '-') for k in ('OPENROUTER_API_KEY','OPENROUTER_VIDEO_MODEL','NVIDIA_API_KEY','FAL_KEY','MINIMAX_API_KEY','MINIMAX_API_HOST')]"
+```
+
+### Step 5 — Connect your agent
+
+Start every agent **from the repo root with `.venv` active**. The Studio server is launched as
+`python3 lib/mcp_server.py`; outside the venv, `python3` is your system Python without the `mcp`
+package and the server fails to start.
+
+**Claude Code** — zero config:
+```bash
+source .venv/bin/activate && claude
+```
+- Approve the `luxor9-studio` server from `.mcp.json` when asked; `/mcp` shows it connected.
+- The Studio skills in `.claude/skills/` load automatically: `/studio`, `/ad`, `/ugc`, `/commercial`,
+  `/image`, `/carousel`, `/banner`, `/design-system`, `/templates`, `/research`, `/schedule`.
+
+**OpenCode** — `opencode.json` at the repo root registers the Studio server and two providers on your
+keys, `nim` and `openrouter-byok`:
+```bash
+export NVIDIA_API_KEY=...          # and/or OPENROUTER_API_KEY=...
+source .venv/bin/activate && opencode
+```
+Pick a `nim` or `openrouter-byok` model in OpenCode's model picker.
+
+**Hermes Agent** — global config, so point it at your clone:
+1. Merge [`harnesses/hermes.config.snippet.yaml`](harnesses/hermes.config.snippet.yaml) into
+   `~/.hermes/config.yaml`. Set `cwd` to your clone and `command` to `<clone>/.venv/bin/python`
+   (Hermes doesn't start inside your venv).
+2. Keep the `model:` block for NIM, or switch to the commented OpenRouter one. Keys go in
+   `~/.hermes/.env` (`chmod 600`), never in the YAML.
+3. Run `hermes chat` **from the repo root** (Hermes loads `AGENTS.md` from its working directory), and
+   `/reload-mcp` after any config edit.
+
+**DeepSeek Harness (dsh)** — developer preview with breaking changes; config keys can differ by version:
+1. `npx @deepseek-ai/dsh web`.
+2. Add the Studio server through the `@deepseek-ai/dsh-mcp-client` plugin with
+   [`harnesses/dsh.mcp.snippet.yml`](harnesses/dsh.mcp.snippet.yml): absolute path to
+   `lib/mcp_server.py`, and `<clone>/.venv/bin/python` as `command`.
+3. Add NIM/OpenRouter under Settings → Models, or with
+   [`harnesses/dsh.providers.snippet.yaml`](harnesses/dsh.providers.snippet.yaml).
+4. dsh drops credential-style env vars from MCP children, so `key_status` inside dsh can read `false`
+   even when your keys work. Generation runs from the repo shell, where `.env` is loaded.
+
+**Cursor / Copilot / Codex / Windsurf** read their own config files ([Agent Compatibility](#agent-compatibility))
+and run the pipelines from the shell. To add the Studio server, register the stdio command
+`<clone>/.venv/bin/python lib/mcp_server.py` in your editor's MCP settings.
+
+### Step 6 — Verify the agent connection
+
+Ask the agent to call `key_status` and `list_capabilities` (prompt [H7](#h7--health-check-any-time)).
+
+**Check:** `key_status` returns `nvidia`, `openrouter`, `fal`, `minimax` as `true`/`false` matching
+Step 4 (values are never returned); `list_capabilities` returns 13 labels, from `Ad creation` to
+`Custom workflows`. Same check without an agent:
+```bash
+python -c "from lib.mcp_server import key_status, list_capabilities as c; print(key_status()); print([x['label'] for x in c()])"
+```
+
+### Step 7 — First ad (free route)
+
+In Claude Code type `/ad` plus a one-line brief; in any other agent paste prompt [H8](#h8--first-ad-free-route).
+The free route uses offline narration (Piper), free stock footage (Pexels/Pixabay need free keys) and
+local composition. The agent stops for approval at script and storyboard, asks before any paid
+upgrade, and runs the brand check before delivery.
+
+**Check:** a final MP4 in `projects/<project-name>/renders/`.
+
+### Step 8 — First paid clip on your OpenRouter key (optional, costs money)
+
+List the video models your key can use:
+```bash
+python -c "from tools.video.openrouter_video import OpenRouterVideo as V; r=V().execute({'operation':'list_models'}); print(r.error or [m.get('id') for m in r.data['models']])"
+```
+Then one short test clip. Use a duration and resolution that model supports (the API rejects anything
+else) and check its price on [openrouter.ai/models](https://openrouter.ai/models) first:
+```bash
+python -c "from tools.video.openrouter_video import OpenRouterVideo as V; r=V().execute({'model':'<id from the list>','prompt':'slow push-in on a matte black water bottle, studio light','duration':4,'resolution':'720p','aspect_ratio':'9:16','output_path':'projects/byok-test/clip.mp4'}); print(r.error or r.data)"
+```
+
+**Check:** `projects/byok-test/clip.mp4` plays; the charge shows on your OpenRouter dashboard.
+Optionally set `OPENROUTER_VIDEO_MODEL` in `.env` to make that model the default.
+
+### Step 9 — Extra engines (optional, Claude Code plugins)
+
+```text
+/plugin marketplace add rajkhemani/luxor9-video-pipeline
+/plugin install luxor9-blender@luxor9      # "3D scene": uv + Blender with the BlenderMCP add-on running
+/plugin install luxor9-comfyui@luxor9      # "Custom workflows": comfy-mcp + a running ComfyUI
+/plugin install luxor9-minimax@luxor9      # "Motion" (paid): uv + MINIMAX_API_KEY/HOST exported
+```
+Install only what you'll use, then restart Claude Code. One-time setup for each is in its skill:
+[3D scene](plugins/luxor9-blender/skills/scene-3d/SKILL.md) ·
+[Custom workflows](plugins/luxor9-comfyui/skills/workflows/SKILL.md) ·
+[Motion](plugins/luxor9-minimax/skills/motion/SKILL.md).
+
+**Check:** `/mcp` lists `blender`, `comfy` or `minimax` as connected.
+
+---
+
+## Path H — The Agent Install (copy-paste LLM prompts)
+
+Paste these into your AI assistant. Each one is self-contained and carries the same guardrails: show
+the output of every step, stop at the first failure, ask before `sudo`/global installs, never print or
+commit keys, never spend money without an explicit yes. Fill in the `<angle brackets>`.
+
+#### H1 — Install and verify (start here, any agent with a shell)
+
+```text
+Install LUXOR9 (https://github.com/rajkhemani/luxor9-video-pipeline) on this machine and prove it works.
+Rules: show me the output of every step; stop at the first failure and diagnose it before continuing;
+ask before any sudo/admin command or global install; never print, log or commit API keys; spend no money.
+
+1. Check prerequisites: git, python3 >= 3.10, ffmpeg, node >= 18 (>= 22 for HyperFrames). For anything
+   missing, give me the install command for my OS from the README "Stage 0" section and wait for my OK.
+2. git clone https://github.com/rajkhemani/luxor9-video-pipeline.git && cd luxor9-video-pipeline
+3. python3 -m venv .venv, activate it, then run `make setup`. No make: follow README "Path C" exactly.
+4. Verify: python -c "import yaml, pydantic, jsonschema, dotenv, PIL, requests, numpy, mcp" and ls .env
+5. Run `make preflight`, `make test-contracts`, `make demo`.
+6. Report a table (step | command | pass/fail) and list the MP4s in projects/demos/renders/.
+7. Read AGENT_GUIDE.md and tell me in 5 bullets what I can produce with zero API keys.
+```
+
+#### H2 — Add keys without exposing them
+
+```text
+Help me add my API keys to LUXOR9 without exposing them. Do NOT ask me to paste keys into this chat
+and never print key values.
+1. Show which keys are set (presence only) with:
+   python -c "import tools.base_tool, os; [print(k, bool(os.environ.get(k))) for k in ('OPENROUTER_API_KEY','OPENROUTER_VIDEO_MODEL','NVIDIA_API_KEY','FAL_KEY','MINIMAX_API_KEY','MINIMAX_API_HOST')]"
+2. Tell me which lines of .env to fill for: video on OpenRouter, planning on NVIDIA NIM, images/video on
+   fal. Wait while I edit .env myself.
+3. Remind me that MINIMAX_API_KEY/MINIMAX_API_HOST must also be exported in the shell that starts my
+   agent, and that harness model keys (OpenCode, Hermes, dsh) live in that harness's own environment.
+4. Re-run step 1, then `make preflight`, and tell me which capabilities each new key unlocked.
+```
+
+#### H3 — Connect Claude Code
+
+```text
+Set up LUXOR9 Studio in this Claude Code session (repo root).
+1. Check that the luxor9-studio MCP server from .mcp.json is connected. If it failed, check
+   `python3 -c "import mcp"` and tell me to restart you from a shell with .venv activated.
+2. Call key_status and list_capabilities; show a table of capability labels and their status.
+   Labels only: no model, vendor or tool names.
+3. List the short-name skills in .claude/skills/ that I can type (/studio, /ad, ...), one line each.
+4. Ask which optional engines I want (3D scene, Custom workflows, Motion). For the ones I pick, give me
+   the exact /plugin commands from the README "Step 9" and the setup steps from each plugin's SKILL.md.
+   Install nothing I didn't pick.
+```
+
+#### H4 — Connect OpenCode
+
+```text
+Connect LUXOR9 to this OpenCode session (repo root).
+1. Read opencode.json and confirm the luxor9-studio MCP server is running; if not, check
+   `python3 -c "import mcp"` and tell me to restart OpenCode from a shell with .venv activated.
+2. Tell me which provider I'm on (nim or openrouter-byok) and whether its key variable is set in your
+   environment (yes/no only).
+3. Call key_status and list_capabilities and show the capability labels.
+4. Read AGENTS.md and AGENT_GUIDE.md, then tell me how to start my first ad.
+```
+
+#### H5 — Connect Hermes Agent
+
+```text
+Connect my LUXOR9 clone at <absolute path to luxor9-video-pipeline> to Hermes.
+1. Back up ~/.hermes/config.yaml, then merge the mcp_servers.luxor9-studio block from
+   <clone>/harnesses/hermes.config.snippet.yaml into it, with cwd = <clone> and
+   command = <clone>/.venv/bin/python. Show me the diff before saving.
+2. Ask whether my model should run on NVIDIA NIM or OpenRouter, and set the matching model block from
+   the snippet. The key goes in ~/.hermes/.env (chmod 600), which I will edit myself.
+3. Tell me to restart with `hermes chat` from <clone> (so AGENTS.md loads) or run /reload-mcp, then call
+   key_status and list_capabilities to confirm.
+```
+
+#### H6 — Connect DeepSeek Harness (dsh)
+
+```text
+Connect my LUXOR9 clone at <absolute path to luxor9-video-pipeline> to DeepSeek Harness.
+dsh is a developer preview: check the docs for my installed version before writing any config, and tell
+me if a field in the repo snippets no longer matches.
+1. Using <clone>/harnesses/dsh.mcp.snippet.yml, register the Studio server through the
+   @deepseek-ai/dsh-mcp-client plugin, with command = <clone>/.venv/bin/python and the absolute path to
+   lib/mcp_server.py. Show me the config before saving.
+2. Help me add NVIDIA NIM and/or OpenRouter as model providers (Settings → Models, or
+   <clone>/harnesses/dsh.providers.snippet.yaml). I will enter keys myself.
+3. Restart dsh and call list_capabilities. If key_status reads false but my keys are in .env, explain
+   that dsh strips credential env vars from MCP children and that generation from the repo shell still
+   sees them.
+```
+
+#### H7 — Health check (any time)
+
+```text
+Run a LUXOR9 health check from the repo root and give me a pass/fail table. Don't fix anything until
+I approve.
+- python version and whether .venv is active
+- `make preflight`: summarize configured capabilities and the ones one key away
+- `make test-contracts`
+- Studio MCP server: key_status (booleans only) and list_capabilities (labels only)
+- `make hyperframes-doctor`
+- `git ls-files .env` must print nothing (warn loudly if .env is tracked)
+End with the top 3 fixes, ranked by impact.
+```
+
+#### H8 — First ad (free route)
+
+```text
+Make an Ad creation for <brand/product>: <one-sentence brief>. Audience: <who>.
+Platforms: Instagram Reels and YouTube Shorts (plus LinkedIn if it fits).
+Use the free route only. Show me the script and storyboard for approval before rendering. Run the brand
+check before delivery. Speak in capability labels only: no model or vendor names. Tell me where the
+final files are.
+```
+(In Claude Code you can start this with `/ad` or `/studio`.)
+
+#### H9 — First paid clip on my OpenRouter key
+
+```text
+Generate one test video clip on my own OpenRouter key with tools/video/openrouter_video.py.
+1. Run operation=list_models and show what the response includes for each model. Don't guess model ids,
+   prices or supported durations that aren't in the response; point me to openrouter.ai/models for prices.
+2. Propose one run: the shortest duration and lowest resolution that model supports, aspect ratio 9:16.
+   State the expected cost and WAIT for my explicit "yes".
+3. Run it with output_path projects/byok-test/clip.mp4, then report file size, duration (ffprobe) and
+   the model used.
+```
+
+#### H10 — Troubleshoot an install
+
+```text
+LUXOR9 install problem. Symptom: <paste the exact error>.
+Read the README "Troubleshooting" table and the relevant Makefile target first. Reproduce the failure
+with the smallest command, explain the root cause, propose the fix, and wait for my OK before changing
+anything outside .venv/ and .env.
+```
+
+---
+
+## Troubleshooting
 
 | Symptom | Fix |
 |---------|-----|
@@ -462,18 +801,26 @@ make setup && make demo
 | `ffmpeg: command not found` after install (Windows) | re-open the terminal (PATH refresh), or add the FFmpeg `bin/` folder to PATH |
 | Node < 22 and you need HyperFrames | upgrade Node (Stage 0 commands); Remotion + FFmpeg still work on Node 18 |
 | Rendering dies on a 512 MB cloud instance | Remotion needs 2 GB+ RAM — render locally against the cloud API (`export RENDER_API_URL=...`) or use a bigger VM (see [Deployment](#deployment)) |
-| `make lint` fails: `No such file or directory: 'tools/composition_validator.py'` | **Known bug** — the file is at `tools/analysis/composition_validator.py`. Until the Makefile is fixed, run `python -m py_compile tools/base_tool.py tools/tool_registry.py tools/cost_tracker.py tools/analysis/composition_validator.py` |
+| `pip install` fails with `externally-managed-environment` | system Python is locked (PEP 668, Debian 12+/Ubuntu 23.04+). Create and activate `.venv` ([Step 2](#step-2--install-luxor9)) |
+| `make: python: No such file or directory` | activate `.venv` (it provides `python`/`pip`), or install your distro's `python-is-python3` |
+| Studio server shows failed in `/mcp` / `ModuleNotFoundError: No module named 'mcp'` | the agent was started outside the venv. Restart it from a shell with `.venv` active, or run `pip install -r requirements.txt` in the interpreter your config names |
+| `make preflight` lists paid providers before you added any key | old loader read `.env.example` placeholders (`FAL_KEY=   # comment`) as key values. `git pull`; the fix treats them as empty |
+| `key_status` says `false` inside DeepSeek Harness, but generation works | dsh strips credential env vars from MCP children; the repo-shell tools still load `.env` |
+| Motion plugin: `invalid api key` | `MINIMAX_API_HOST` doesn't match the key's platform (`https://api.minimax.io` vs `https://api.minimaxi.com`) |
+| A plugin or harness can't see a key that is in `.env` | plugins and harnesses read only their own environment: `export` the key in the shell that starts the agent (or the harness's secret store) |
 | `npx tsc --noEmit` fails in `packages/` | **Known** — 15 pre-existing type errors in the restored Node runtime. It runs correctly via `tsx` (which strips types without checking). See [`docs/RECOVERY_STEP_1.md`](docs/RECOVERY_STEP_1.md) |
 | `free-sales` renders video with **no audio** | **Known gap** — `packages/video-orchestrator/scripts/` (the Python TTS helper) has not been restored yet. Use the Python pipeline for narrated video |
 
-### Did it work? — verification matrix
+## Did it work? — verification matrix
 
 Run these after any path. Each row is independent.
 
 | Check | Command | Expected |
 |---|---|---|
-| Python deps | `python3 -c "import yaml,pydantic,jsonschema,dotenv,PIL,requests,numpy;print('ok')"` | `ok` |
-| Tool registry | `make preflight` | JSON capability menu |
+| Python deps | `python3 -c "import yaml,pydantic,jsonschema,dotenv,PIL,requests,numpy,mcp;print('ok')"` | `ok` |
+| Tool registry | `make preflight` | JSON capability menu; no keyed provider available until you add its key |
+| Studio server | `python -c "from lib.mcp_server import key_status, list_capabilities as c; print(key_status()); print([x['label'] for x in c()])"` | key presence booleans + 13 labels, `Ad creation` … `Custom workflows` |
+| Agent ↔ Studio | ask your agent to call `key_status` (prompt [H7](#h7--health-check-any-time)) | same booleans, from inside the agent |
 | Contract tests | `make test-contracts` | all pass |
 | Zero-key render | `make demo` | MP4s in `projects/demos/renders/` |
 | Remotion composer deps | `ls remotion-composer/node_modules >/dev/null && echo ok` | `ok` |
@@ -559,7 +906,7 @@ The agent researches the topic with live web search, generates assets, writes an
 | **cinematic** | Trailer, teaser, and mood-led edits | production |
 | **screen-demo** | Screen recordings and walkthroughs | production |
 | **hybrid** | Source footage + AI-generated support visuals | production |
-| **social-creative** | Short-form brand ad — 7 platform variants from one text brief | alpha |
+| **social-creative** | Short-form brand ad — 7 platform variants from one text brief | beta |
 | **talking-head** | Footage-led speaker videos | beta |
 | **clip-factory** | Many ranked clips from one long source | beta |
 | **podcast-repurpose** | Podcast highlights and derivatives | beta |
@@ -608,11 +955,16 @@ LUXOR9 works with any AI coding assistant that can read files and execute Python
 
 | Platform | Config File |
 |----------|------------|
-| **Claude Code** | `CLAUDE.md` |
+| **Claude Code** | `CLAUDE.md` + `.mcp.json` + `.claude/skills/` (+ optional plugins via `.claude-plugin/marketplace.json`) |
+| **OpenCode** | `AGENTS.md` + `opencode.json` |
+| **Hermes Agent** | `AGENTS.md` + [`harnesses/hermes.config.snippet.yaml`](harnesses/hermes.config.snippet.yaml) → `~/.hermes/config.yaml` |
+| **DeepSeek Harness** | `AGENTS.md` + [`harnesses/dsh.*`](harnesses/README.md) snippets (version-dependent) |
 | **Cursor** | `CURSOR.md` + `.cursor/rules/` |
 | **GitHub Copilot** | `COPILOT.md` + `.github/copilot-instructions.md` |
 | **Codex** | `CODEX.md` |
 | **Windsurf** | `.windsurfrules` |
+
+Setup for each, with copy-paste prompts: [End-to-End Install → Step 5](#step-5--connect-your-agent).
 
 All platform files point to the shared [`AGENT_GUIDE.md`](AGENT_GUIDE.md) (operating guide and agent contract) and [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) (architecture reference).
 
@@ -636,9 +988,8 @@ cd packages/video-engine       && npm ci && npx tsc --noEmit
 > Node runtime — see [`docs/RECOVERY_STEP_1.md`](docs/RECOVERY_STEP_1.md). The Python
 > suite is green.
 >
-> `make lint` is **broken** (points at `tools/composition_validator.py`; the file is at
-> `tools/analysis/composition_validator.py`). Use the explicit `py_compile` command in
-> [Troubleshooting](#troubleshooting) until it's fixed.
+> `make lint` byte-compiles the core tool modules (`base_tool`, `tool_registry`, `cost_tracker`,
+> `analysis/composition_validator`) and passes.
 
 ---
 
