@@ -1,0 +1,8 @@
+{
+  "name": "luxor9-comfyui",
+  "version": "0.1.0",
+  "description": "LUXOR9 Studio custom workflows capability: connects the agent to a local ComfyUI through comfy-mcp.",
+  "author": {
+    "name": "LUXOR9"
+  }
+}

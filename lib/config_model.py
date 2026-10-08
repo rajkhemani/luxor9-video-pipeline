@@ -25,11 +25,22 @@ class CheckpointPolicy(str, Enum):
     AUTO_NONCREATIVE = "auto_noncreative"
 
 
+class LLMEndpoint(BaseModel):
+    """An OpenAI-compatible chat endpoint (Ollama, vLLM, LM Studio, OpenRouter...)."""
+
+    base_url: str
+    model: str
+    api_key_env: Optional[str] = None  # name of the env var holding the key
+    timeout_seconds: float = 60.0
+
+
 class LLMConfig(BaseModel):
     provider: str = "anthropic"
     model: Optional[str] = None
     temperature: float = 0.7
     max_tokens: int = 4096
+    # Keyed by alias. Agents and users refer to aliases; model names stay here.
+    endpoints: dict[str, LLMEndpoint] = Field(default_factory=dict)
 
 
 class BudgetConfig(BaseModel):

@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "comfy": {
+      "command": "comfy-mcp"
+    }
+  }
+}

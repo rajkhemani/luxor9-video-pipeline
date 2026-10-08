@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "luxor9-studio": {
+      "command": "python3",
+      "args": ["${CLAUDE_PROJECT_DIR:-.}/lib/mcp_server.py"]
+    }
+  }
+}

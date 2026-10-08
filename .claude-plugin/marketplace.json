@@ -1,0 +1,24 @@
+{
+  "name": "luxor9",
+  "description": "LUXOR9 Studio integrations. Each plugin connects one outside engine to the Studio agent.",
+  "owner": {
+    "name": "LUXOR9"
+  },
+  "plugins": [
+    {
+      "name": "luxor9-blender",
+      "source": "./plugins/luxor9-blender",
+      "description": "3D scene: drive a running Blender for product renders and 3D scenes."
+    },
+    {
+      "name": "luxor9-comfyui",
+      "source": "./plugins/luxor9-comfyui",
+      "description": "Custom workflows: run your own ComfyUI image and video graphs."
+    },
+    {
+      "name": "luxor9-minimax",
+      "source": "./plugins/luxor9-minimax",
+      "description": "Motion: premium MiniMax video, image and voice generation (paid API)."
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+# LUXOR9 Studio capability map.
+#
+# Users only ever see each capability's `label` and `summary`. Everything
+# under `route` is internal: tool, pipeline, integration and provider names
+# never appear in user-facing copy (see .claude/skills/studio/SKILL.md).
+#
+# Cost policy "mix": a capability runs its free route by default. Its
+# `upgrade` route (paid models) runs only when the user explicitly asks to
+# upgrade that specific asset. `paid_only` capabilities have no free route.
+#
+# status: ready | needs_setup (an integration must be installed) | planned
+
+version: 1
+policy: mix
+
+capabilities:
+  ad:
+    label: Ad creation
+    summary: A short video ad with a cut for every social platform.
+    status: ready
+    route:
+      pipeline: social-creative
+      free: [piper_tts, pexels_video, pixabay_video, pexels_image, pixabay_image, hyperframes_compose, video_compose]
+      upgrade: [video_selector, image_selector, tts_selector, music_gen]
+
+  ugc:
+    label: UGC-style ad
+    summary: A presenter-led, phone-shot style ad. Never a fake customer.
+    status: ready
+    guard: no_synthetic_testimonials
+    route:
+      pipeline: avatar-spokesperson
+      free: [piper_tts, video_compose]
+      upgrade: [talking_head, lip_sync, tts_selector]
+
+  commercial:
+    label: Commercial
+    summary: A cinematic brand film or teaser.
+    status: ready
+    route:
+      pipeline: cinematic
+      free: [pexels_video, pixabay_video, piper_tts, video_compose]
+      upgrade: [video_selector, music_gen, tts_selector]
+
+  image:
+    label: Image
+    summary: Product and campaign stills.
+    status: ready
+    route:
+      free: [pexels_image, pixabay_image, unsplash, local_diffusion]
+      upgrade: [image_selector]
+
+  carousel:
+    label: Carousel
+    summary: A multi-slide post built from your brand system.
+    status: planned
+
+  banner:
+    label: Banner
+    summary: Static banners and display ads in every size.
+    status: planned
+
+  design_system:
+    label: Design system
+    summary: Your colors, type and components as reusable tokens.
+    status: planned
+
+  templates:
+    label: Templates
+    summary: Start from a saved layout or a past kit.
+    status: planned
+
+  research:
+    label: Research
+    summary: What your market is talking about right now.
+    status: ready
+    route:
+      skill: last30days
+
+  schedule:
+    label: Scheduling
+    summary: Queue finished assets to your social channels.
+    status: needs_setup
+    route:
+      integration: social_scheduler
+
+  scene_3d:
+    label: 3D scene
+    summary: Product renders and 3D scenes.
+    status: needs_setup
+    route:
+      integration: blender
+
+  motion:
+    label: Motion
+    summary: Premium AI video shots with native sound.
+    status: needs_setup
+    paid_only: true
+    route:
+      integration: minimax
+      upgrade: [video_selector]
+
+  workflows:
+    label: Custom workflows
+    summary: Run your own image and video graphs.
+    status: needs_setup
+    route:
+      integration: comfyui
+
+# How each integration is installed. Plugins live in plugins/ and are listed
+# in .claude-plugin/marketplace.json.
+integrations:
+  blender:
+    kind: mcp_plugin
+    plugin: luxor9-blender
+  comfyui:
+    kind: mcp_plugin
+    plugin: luxor9-comfyui
+  minimax:
+    kind: mcp_plugin
+    plugin: luxor9-minimax
+    paid: true
+  social_scheduler:
+    kind: connector
+    options: [metricool_connector, postiz_skill]
