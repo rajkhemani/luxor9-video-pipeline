@@ -1,0 +1,23 @@
+# DeepSeek Harness model providers: $DSH_HOME/settings.yaml, under the
+# llm-pi-ai plugin. Or use the web UI: Settings -> Models -> Add a custom provider.
+#
+# VERSION-DEPENDENT, sourced from published integration guides (not tested
+# here). Keys go in ~/.dsh/.credentials.yaml or the environment, never here.
+# A hand-declared `models` list REPLACES the catalog: list every model you use.
+
+llm-pi-ai:
+  providers:
+    nim:
+      displayName: NVIDIA NIM
+      apiKeyEnv: NVIDIA_API_KEY
+      api: openai-completions
+      baseURL: https://integrate.api.nvidia.com/v1
+      models:
+        - id: deepseek-ai/deepseek-r1        # check current ids at build.nvidia.com
+    openrouter:
+      displayName: OpenRouter
+      apiKeyEnv: OPENROUTER_API_KEY
+      api: openai-completions
+      baseURL: https://openrouter.ai/api/v1
+      models:
+        - id: openrouter/auto

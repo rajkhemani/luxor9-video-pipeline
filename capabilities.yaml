@@ -98,7 +98,9 @@ capabilities:
     paid_only: true
     route:
       integration: minimax
-      upgrade: [video_selector]
+      # Any of: the minimax plugin, an OpenRouter key (openrouter_video), or
+      # whatever video_selector finds configured.
+      upgrade: [openrouter_video, video_selector]
 
   workflows:
     label: Custom workflows

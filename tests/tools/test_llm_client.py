@@ -97,4 +97,4 @@ def test_unknown_alias_and_unreachable():
 
 def test_list_endpoints_returns_aliases_only(server):
     assert list_endpoints(_config(server)) == ["fast"]
-    assert "local" in list_endpoints()  # from config.yaml
+    assert {"local", "nim", "openrouter"} <= set(list_endpoints())  # from config.yaml
