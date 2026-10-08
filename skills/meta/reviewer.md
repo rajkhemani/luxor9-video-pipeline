@@ -305,3 +305,13 @@ Run at **compose** and **publish** stages. Ensures the agent reviewed the actual
 1. Verify that `final_review` was passed through as a required artifact
 2. If `final_review.status` is not `pass`: **CRITICAL** — "Cannot publish with a non-passing self-review"
 3. If `final_review.issues_found` is non-empty and `recommended_action` is not `present_to_user`: **SUGGESTION** — "Self-review found issues; verify they were resolved before publishing"
+
+## Brand Gate Review
+
+Run at **compose** and **publish** for any deliverable made for a brand that has a rules file in `brand/` (LUXOR9 Studio work: `brand/luxor9.yaml`).
+
+1. Call `brand_quality_gate` with the deliverable's on-screen and spoken copy (`texts`, keyed by field), every hex color used (`colors`), `metadata` (`ai_generated`, `ai_disclosure`, `synthetic_testimonial`) and each factual claim with its source (`claims`).
+2. Any gate **error** is **CRITICAL**. Quote the gate's `rule`, `field` and `message`, and propose the fix (swap the color for the nearest palette token, rewrite the claim, add the disclosure, attach the source).
+3. Gate **warnings** (discouraged buzzwords) are **SUGGESTION**s.
+4. A deliverable with `passed: false` must not be published or presented as final. Attach the gate report to the evidence pack.
+5. Change brand colors, phrases or thresholds only in the brand rules file, never in the tool.
