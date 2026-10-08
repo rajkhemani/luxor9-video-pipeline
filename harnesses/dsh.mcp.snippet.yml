@@ -1,0 +1,19 @@
+# DeepSeek Harness (dsh, npm @deepseek-ai/dsh): MCP through the official
+# @deepseek-ai/dsh-mcp-client plugin, one plugin instance per MCP server.
+#
+# VERSION-DEPENDENT: dsh is a developer preview and warns of breaking changes.
+# Guides disagree on where this goes (cordis.yml vs ~/.dsh/profiles/web/
+# cordis.patch.yml). Field names below (serverName, transport, command, args)
+# come from published guides, not from a version we tested. Check
+# https://deepseek-harness.github.io/deepseek-harness/ for your installed version.
+
+"@deepseek-ai/dsh-mcp-client:luxor9":
+  serverName: luxor9-studio          # tools appear as mcp__luxor9-studio__<tool>
+  transport: stdio
+  command: python3
+  args:
+    - /absolute/path/to/luxor9-video-pipeline/lib/mcp_server.py   # <- your clone
+
+# Note: dsh drops credential-style env vars from stdio children. The Studio
+# server only reads keys for model aliases (ask_model) and key_status; run
+# generation from the repo shell, where your exported keys are visible.

@@ -1,0 +1,31 @@
+# Hermes Agent (NousResearch/hermes-agent): merge into ~/.hermes/config.yaml.
+# Hermes has no project-level config, so point `cwd` at your clone of this repo.
+# Verified against hermes-agent.nousresearch.com/docs (mcp_servers: command, args,
+# env, cwd, enabled, timeout). Model-block keys come from provider guides:
+# confirm them against your installed version's docs before use.
+# After editing: run /reload-mcp inside Hermes.
+
+mcp_servers:
+  luxor9-studio:
+    command: "python3"
+    args: ["lib/mcp_server.py"]
+    cwd: "/absolute/path/to/luxor9-video-pipeline"   # <- your clone
+    enabled: true
+    timeout: 120
+
+# Pick ONE model spine. Keys live in ~/.hermes/.env (chmod 600), never here.
+# NVIDIA NIM (OpenAI-compatible):
+model:
+  provider: custom
+  default: deepseek-ai/deepseek-r1          # check current ids at build.nvidia.com
+  base_url: https://integrate.api.nvidia.com/v1
+  api_key: ${NVIDIA_API_KEY}
+  context_length: 65536                     # Hermes needs roughly 64k for agent work
+
+# OpenRouter instead:
+# model:
+#   provider: custom
+#   default: openrouter/auto
+#   base_url: https://openrouter.ai/api/v1
+#   api_key: ${OPENROUTER_API_KEY}
+#   context_length: 65536

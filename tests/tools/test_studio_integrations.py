@@ -58,3 +58,16 @@ def test_short_name_skills_cover_every_non_plugin_capability():
         front = yaml.safe_load(skill.read_text(encoding="utf-8").split("---")[1])
         assert front["name"] == name.replace("_", "-")
         assert re.search(rf"capability `{name}`", skill.read_text(encoding="utf-8"))
+
+
+def test_harness_configs_point_at_studio_server_without_secrets():
+    opencode = _load(REPO / "opencode.json")
+    server = opencode["mcp"]["luxor9-studio"]
+    assert server["type"] == "local" and server["command"][-1] == "lib/mcp_server.py"
+    for provider in opencode["provider"].values():
+        assert provider["options"]["apiKey"].startswith("{env:"), "keys must come from the environment"
+    hermes = yaml.safe_load((REPO / "harnesses" / "hermes.config.snippet.yaml").read_text(encoding="utf-8"))
+    assert hermes["mcp_servers"]["luxor9-studio"]["args"] == ["lib/mcp_server.py"]
+    assert hermes["model"]["api_key"].startswith("${")
+    dsh = yaml.safe_load((REPO / "harnesses" / "dsh.mcp.snippet.yml").read_text(encoding="utf-8"))
+    assert next(iter(dsh.values()))["args"][-1].endswith("lib/mcp_server.py")

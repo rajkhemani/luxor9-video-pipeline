@@ -10,6 +10,7 @@ Run from the repo root:  python lib/mcp_server.py
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 from typing import Any, Optional
@@ -64,6 +65,20 @@ def brand_check(
 def list_models() -> list[str]:
     """Aliases of configured OpenAI-compatible model endpoints (no model names)."""
     return llm_client.list_endpoints()
+
+
+BYOK_KEYS = {
+    "nvidia": "NVIDIA_API_KEY",
+    "openrouter": "OPENROUTER_API_KEY",
+    "fal": "FAL_KEY",
+    "minimax": "MINIMAX_API_KEY",
+}
+
+
+@mcp.tool()
+def key_status() -> dict[str, bool]:
+    """Which bring-your-own API keys are set in this environment (never the values)."""
+    return {name: bool(os.environ.get(var)) for name, var in BYOK_KEYS.items()}
 
 
 @mcp.tool()

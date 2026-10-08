@@ -19,7 +19,15 @@ REPO = Path(__file__).resolve().parents[2]
 
 def test_registers_expected_tools():
     names = {t.name for t in asyncio.run(mcp_server.mcp.list_tools())}
-    assert names == {"list_capabilities", "capability_route", "brand_check", "list_models", "ask_model"}
+    assert names == {"list_capabilities", "capability_route", "brand_check", "list_models", "key_status", "ask_model"}
+
+
+def test_key_status_reports_presence_not_values(monkeypatch):
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-secret")
+    monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
+    status = mcp_server.key_status()
+    assert status["openrouter"] is True and status["nvidia"] is False
+    assert "sk-or-secret" not in str(status)
 
 
 def test_tools_return_studio_data():
