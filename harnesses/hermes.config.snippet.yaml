@@ -7,7 +7,7 @@
 
 mcp_servers:
   luxor9-studio:
-    command: "python3"
+    command: "python3"                               # or <clone>/.venv/bin/python if deps live in a venv
     args: ["lib/mcp_server.py"]
     cwd: "/absolute/path/to/luxor9-video-pipeline"   # <- your clone
     enabled: true

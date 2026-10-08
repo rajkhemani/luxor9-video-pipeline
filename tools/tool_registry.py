@@ -12,7 +12,7 @@ import pkgutil
 from types import ModuleType
 from typing import Any, Optional
 
-from tools.base_tool import BaseTool, ToolStatus, ToolTier, ToolStability
+from tools.base_tool import BaseTool, ToolStatus, ToolTier, ToolStability, parse_env_line
 
 
 # Unicode punctuation that breaks on Windows cp1252 stdout. Map each to an
@@ -93,14 +93,9 @@ class ToolRegistry:
             return
         with open(env_path, encoding="utf-8", errors="ignore") as f:
             for line in f:
-                line = line.strip()
-                if not line or line.startswith("#") or "=" not in line:
-                    continue
-                key, _, value = line.partition("=")
-                key = key.strip()
-                value = value.strip().strip("'\"")
-                if key and key not in os.environ:
-                    os.environ[key] = value
+                parsed = parse_env_line(line)
+                if parsed and parsed[0] not in os.environ:
+                    os.environ[parsed[0]] = parsed[1]
 
     def discover(self, package_name: str = "tools") -> list[str]:
         """Import a package tree and register any concrete tools it defines."""
