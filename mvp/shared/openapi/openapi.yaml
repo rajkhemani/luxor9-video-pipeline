@@ -1,0 +1,1151 @@
+openapi: 3.1.0
+info:
+  title: OpenMontage Cloud API
+  version: 1.0.0
+  description: |
+    Higgsfield Studio API - Multi-model video generation with production pipelines.
+    Single subscription. Every premium model. Production-ready output. Auto-distributed.
+  contact:
+    name: OpenMontage Team
+    url: https://openmontage.app
+    email: support@openmontage.app
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8090/api
+    description: Development (PocketBase)
+  - url: https://api.openmontage.app/api
+    description: Production
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Projects
+    description: Video project management
+  - name: Generation
+    description: Video generation via Higgsfield
+  - name: Templates
+    description: Template gallery and management
+  - name: Soul IDs
+    description: Character consistency management
+  - name: Credits
+    description: Credit balance and usage tracking
+  - name: Publishing
+    description: Automated distribution to platforms
+  - name: Webhooks
+    description: Higgsfield and platform callbacks
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # ─── Auth ─────────────────────────────────────────────
+    AuthRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+        expires:
+          type: string
+          format: date-time
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        avatar:
+          type: string
+          format: uri
+        tier:
+          type: string
+          enum: [explorer, creator, studio, enterprise]
+        credits_balance:
+          type: integer
+        created:
+          type: string
+          format: date-time
+        updated:
+          type: string
+          format: date-time
+
+    # ─── Projects ─────────────────────────────────────────
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        pipeline:
+          type: string
+          enum: [cinematic, avatar-spokesperson, social-creative, animated-explainer, talking-head, screen-demo, clip-factory, podcast-repurpose, hybrid, character-animation, localization-dub, documentary-montage, framework-smoke]
+        status:
+          type: string
+          enum: [draft, generating, reviewing, rendering, published, failed]
+        style_playbook:
+          type: string
+        brand_kit_id:
+          type: string
+        target_platforms:
+          type: array
+          items:
+            type: string
+            enum: [youtube, tiktok, instagram, linkedin, twitter, threads, youtube_shorts]
+        auto_publish:
+          type: boolean
+          default: false
+        scheduled_at:
+          type: string
+          format: date-time
+        credits_used:
+          type: integer
+          default: 0
+        metadata:
+          type: object
+        created:
+          type: string
+          format: date-time
+        updated:
+          type: string
+          format: date-time
+
+    ProjectCreate:
+      type: object
+      required: [name, pipeline]
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+        pipeline:
+          type: string
+          enum: [cinematic, avatar-spokesperson, social-creative, animated-explainer, talking-head, screen-demo, clip-factory, podcast-repurpose, hybrid, character-animation, localization-dub, documentary-montage, framework-smoke]
+        style_playbook:
+          type: string
+        brand_kit_id:
+          type: string
+        target_platforms:
+          type: array
+          items:
+            type: string
+            enum: [youtube, tiktok, instagram, linkedin, twitter, threads, youtube_shorts]
+        auto_publish:
+          type: boolean
+          default: false
+        scheduled_at:
+          type: string
+          format: date-time
+
+    ProjectUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        target_platforms:
+          type: array
+          items:
+            type: string
+        auto_publish:
+          type: boolean
+        scheduled_at:
+          type: string
+          format: date-time
+
+    ProjectListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+        total_items:
+          type: integer
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total_pages:
+          type: integer
+
+    # ─── Generation ───────────────────────────────────────
+    GenerationRequest:
+      type: object
+      required: [project_id, prompt]
+      properties:
+        project_id:
+          type: string
+        prompt:
+          type: string
+          maxLength: 4000
+        model:
+          type: string
+          enum: [seedance_2.0, seedance_2.0_fast, kling_3.0, veo_3.1, sora_2, wan_2.5, soul_cinema]
+          default: seedance_2.0
+        operation:
+          type: string
+          enum: [text_to_video, image_to_video]
+          default: text_to_video
+        duration:
+          type: string
+          enum: ["5", "10", "15"]
+          default: "5"
+        aspect_ratio:
+          type: string
+          enum: ["16:9", "9:16", "1:1", "21:9"]
+          default: "16:9"
+        image_url:
+          type: string
+          format: uri
+        soul_id:
+          type: string
+        template_id:
+          type: string
+        enhance_prompt:
+          type: boolean
+          default: true
+        quality_gate:
+          type: boolean
+          default: true
+
+    GenerationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        project_id:
+          type: string
+        status:
+          type: string
+          enum: [queued, processing, completed, failed]
+        model:
+          type: string
+        prompt:
+          type: string
+        video_url:
+          type: string
+          format: uri
+        thumbnail_url:
+          type: string
+          format: uri
+        duration_seconds:
+          type: integer
+        credits_used:
+          type: integer
+        metadata:
+          type: object
+        error:
+          type: string
+        created:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+
+    GenerationStatus:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [queued, processing, completed, failed]
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+        estimated_completion:
+          type: string
+          format: date-time
+
+    # ─── Templates ────────────────────────────────────────
+    Template:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        pipeline:
+          type: string
+        model:
+          type: string
+        preview_url:
+          type: string
+          format: uri
+        thumbnail_url:
+          type: string
+          format: uri
+        tags:
+          type: array
+          items:
+            type: string
+        is_featured:
+          type: boolean
+        is_official:
+          type: boolean
+        author_id:
+          type: string
+        usage_count:
+          type: integer
+        config:
+          type: object
+        created:
+          type: string
+          format: date-time
+
+    # ─── Soul IDs (Character Consistency) ─────────────────
+    SoulID:
+      type: object
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        reference_images:
+          type: array
+          items:
+            type: string
+            format: uri
+        model:
+          type: string
+          enum: [soul_cinema, seedance_2.0]
+          default: soul_cinema
+        pose_library_id:
+          type: string
+        is_active:
+          type: boolean
+          default: true
+        usage_count:
+          type: integer
+        created:
+          type: string
+          format: date-time
+        updated:
+          type: string
+          format: date-time
+
+    SoulIDCreate:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 50
+        description:
+          type: string
+        reference_images:
+          type: array
+          items:
+            type: string
+            format: uri
+        model:
+          type: string
+          enum: [soul_cinema, seedance_2.0]
+          default: soul_cinema
+
+    # ─── Credits ──────────────────────────────────────────
+    CreditBalance:
+      type: object
+      properties:
+        total_credits:
+          type: integer
+        used_credits:
+          type: integer
+        remaining_credits:
+          type: integer
+        tier:
+          type: string
+          enum: [explorer, creator, studio, enterprise]
+        reset_date:
+          type: string
+          format: date-time
+
+    CreditTransaction:
+      type: object
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        type:
+          type: string
+          enum: [purchase, usage, refund, bonus, referral]
+        amount:
+          type: integer
+        balance_after:
+          type: integer
+        description:
+          type: string
+        metadata:
+          type: object
+        created:
+          type: string
+          format: date-time
+
+    # ─── Publishing ───────────────────────────────────────
+    PublishRequest:
+      type: object
+      required: [project_id, platforms]
+      properties:
+        project_id:
+          type: string
+        platforms:
+          type: array
+          items:
+            type: string
+            enum: [youtube, tiktok, instagram, linkedin, twitter, threads, youtube_shorts]
+        captions:
+          type: object
+          additionalProperties:
+            type: string
+        hashtags:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        schedule_at:
+          type: string
+          format: date-time
+
+    PublishResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        project_id:
+          type: string
+        platform:
+          type: string
+        status:
+          type: string
+          enum: [pending, processing, published, failed]
+        platform_post_id:
+          type: string
+        platform_url:
+          type: string
+          format: uri
+        error:
+          type: string
+        published_at:
+          type: string
+          format: date-time
+
+    # ─── Webhooks ─────────────────────────────────────────
+    HiggsfieldWebhook:
+      type: object
+      properties:
+        event:
+          type: string
+          enum: [generation.completed, generation.failed, generation.progress]
+        generation_id:
+          type: string
+        status:
+          type: string
+        output_url:
+          type: string
+          format: uri
+        error:
+          type: string
+        progress:
+          type: integer
+
+    PlatformWebhook:
+      type: object
+      properties:
+        platform:
+          type: string
+        event:
+          type: string
+        post_id:
+          type: string
+        status:
+          type: string
+        data:
+          type: object
+
+    # ─── Common ───────────────────────────────────────────
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+
+    PaginationParams:
+      type: object
+      properties:
+        page:
+          type: integer
+          default: 1
+          minimum: 1
+        per_page:
+          type: integer
+          default: 20
+          minimum: 1
+          maximum: 100
+
+paths:
+  # ─── Auth ──────────────────────────────────────────────
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: User registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        '201':
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/me:
+    get:
+      tags: [Authentication]
+      summary: Get current user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/refresh:
+    post:
+      tags: [Authentication]
+      summary: Refresh access token
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: New token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  # ─── Projects ──────────────────────────────────────────
+  /projects:
+    get:
+      tags: [Projects]
+      summary: List user projects
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, generating, reviewing, rendering, published, failed]
+        - name: pipeline
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Project list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectListResponse'
+
+    post:
+      tags: [Projects]
+      summary: Create project
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectCreate'
+      responses:
+        '201':
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /projects/{id}:
+    get:
+      tags: [Projects]
+      summary: Get project
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Project details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      tags: [Projects]
+      summary: Update project
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdate'
+      responses:
+        '200':
+          description: Project updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+
+    delete:
+      tags: [Projects]
+      summary: Delete project
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          description: Not found
+
+  # ─── Generation ────────────────────────────────────────
+  /generation/generate:
+    post:
+      tags: [Generation]
+      summary: Generate video via Higgsfield
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerationRequest'
+      responses:
+        '202':
+          description: Generation queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationResponse'
+        '400':
+          description: Validation error
+        '402':
+          description: Insufficient credits
+        '429':
+          description: Rate limited
+
+  /generation/{id}:
+    get:
+      tags: [Generation]
+      summary: Get generation status
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Generation status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationStatus'
+
+  /generation/{id}/retry:
+    post:
+      tags: [Generation]
+      summary: Retry failed generation
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '202':
+          description: Generation queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationResponse'
+
+  /generation/history:
+    get:
+      tags: [Generation]
+      summary: Generation history
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+        - name: project_id
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Generation history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GenerationResponse'
+
+  # ─── Templates ─────────────────────────────────────────
+  /templates:
+    get:
+      tags: [Templates]
+      summary: List templates
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+        - name: pipeline
+          in: query
+          schema:
+            type: string
+        - name: featured
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Template list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Template'
+
+  /templates/{id}:
+    get:
+      tags: [Templates]
+      summary: Get template
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Template details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Template'
+
+  /templates/{id}/use:
+    post:
+      tags: [Templates]
+      summary: Create project from template
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Project created from template
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+
+  # ─── Soul IDs ──────────────────────────────────────────
+  /soul-ids:
+    get:
+      tags: [Soul IDs]
+      summary: List user Soul IDs
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Soul ID list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SoulID'
+
+    post:
+      tags: [Soul IDs]
+      summary: Create Soul ID
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SoulIDCreate'
+      responses:
+        '201':
+          description: Soul ID created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SoulID'
+
+  /soul-ids/{id}:
+    get:
+      tags: [Soul IDs]
+      summary: Get Soul ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Soul ID details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SoulID'
+
+    patch:
+      tags: [Soul IDs]
+      summary: Update Soul ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SoulIDCreate'
+      responses:
+        '200':
+          description: Soul ID updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SoulID'
+
+    delete:
+      tags: [Soul IDs]
+      summary: Delete Soul ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted
+
+  # ─── Credits ───────────────────────────────────────────
+  /credits/balance:
+    get:
+      tags: [Credits]
+      summary: Get credit balance
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Credit balance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditBalance'
+
+  /credits/transactions:
+    get:
+      tags: [Credits]
+      summary: Credit transaction history
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+      responses:
+        '200':
+          description: Transaction history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CreditTransaction'
+
+  # ─── Publishing ────────────────────────────────────────
+  /publish:
+    post:
+      tags: [Publishing]
+      summary: Publish to platforms
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishRequest'
+      responses:
+        '202':
+          description: Publish queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PublishResponse'
+
+  /publish/history:
+    get:
+      tags: [Publishing]
+      summary: Publish history
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - name: project_id
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Publish history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PublishResponse'
+
+  # ─── Webhooks ──────────────────────────────────────────
+  /webhooks/higgsfield:
+    post:
+      tags: [Webhooks]
+      summary: Higgsfield callback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HiggsfieldWebhook'
+      responses:
+        '200':
+          description: Received
+
+  /webhooks/platform:
+    post:
+      tags: [Webhooks]
+      summary: Platform callback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlatformWebhook'
+      responses:
+        '200':
+          description: Received
+
+  # ─── Health ────────────────────────────────────────────
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok, degraded]
+                  version:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+    PerPageParam:
+      name: per_page
+      in: query
+      schema:
+        type: integer
+        default: 20
+        minimum: 1
+        maximum: 100
